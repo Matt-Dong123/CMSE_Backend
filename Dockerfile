@@ -29,9 +29,9 @@ RUN pip config set global.index-url http://mirrors.cloud.tencent.com/pypi/simple
 && pip install --user -r requirements.txt
 
 
-RUN python manage.py migrate --no-input
+RUN python3 manage.py migrate --no-input
 
-RUN python manage.py initoption
+RUN python3 manage.py initoption
 
 
 
