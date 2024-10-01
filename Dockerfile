@@ -43,4 +43,4 @@ EXPOSE 80
 CMD ["python3", "manage.py", "runserver", "0.0.0.0:80"]
 
 
-RUN python3 manage.py migrate --no-input
+# RUN python3 manage.py migrate --no-input
