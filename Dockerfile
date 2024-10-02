@@ -34,7 +34,7 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
     gettext && \
     rm -rf /var/lib/apt/lists/*
 
-RUN apt-get tzdata && cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && echo Asia/Shanghai > /etc/timezone
+RUN apt-get install tzdata && cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && echo Asia/Shanghai > /etc/timezone
 
 RUN rm -rf /var/lib/apt/lists/*
 
