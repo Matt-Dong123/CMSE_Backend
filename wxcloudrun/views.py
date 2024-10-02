@@ -35,9 +35,8 @@ def counter(request, _):
         rsp = JsonResponse({'code': -1, 'errorMsg': '请求方式错误'},
                             json_dumps_params={'ensure_ascii': False})
     print(request)
+    logger.info(f'request: {request}')
 
-    for key,value in request.items():
-        logger.info(f'key: {key}, value:{value}')
     logger.info('response result: {}'.format(rsp.content.decode('utf-8')))
     return rsp
 
