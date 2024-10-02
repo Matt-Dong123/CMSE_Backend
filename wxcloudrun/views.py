@@ -35,8 +35,8 @@ def counter(request, _):
         rsp = JsonResponse({'code': -1, 'errorMsg': '请求方式错误!'},
                             json_dumps_params={'ensure_ascii': False})
     logger.info(f'request: {request.META}')
-    logger.info(f'request: {request.META.get('X_WX_OPENID','_OPENID')}')
-    logger.info(f'request: {request.META.get('HTTP_X_WX_OPENID','H1_OPENID')}')
+    logger.info(f'request: {request.META.get("X_WX_OPENID","_OPENID")}')
+    logger.info(f'request: {request.META.get("HTTP_X_WX_OPENID","H1_OPENID")}')
     logger.info('response result: {}'.format(rsp.content.decode('utf-8')))
     return rsp
 
