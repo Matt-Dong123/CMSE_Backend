@@ -32,7 +32,7 @@ def counter(request, _):
     elif request.method == 'POST' or request.method == 'post':
         rsp = update_count(request)
     else:
-        rsp = JsonResponse({'code': -1, 'errorMsg': '请求方式错误'},
+        rsp = JsonResponse({'code': -1, 'errorMsg': '请求方式错误!'},
                             json_dumps_params={'ensure_ascii': False})
     logger.info(f'request: {request.META}')
     logger.info(f'request: {request.META.get('X_WX_OPENID','_OPENID')}')
