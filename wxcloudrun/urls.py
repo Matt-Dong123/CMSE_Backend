@@ -19,6 +19,6 @@ from django.urls import path
 from wxcloudrun import views
 
 urlpatterns = [
-    path(r'^^api/count(/)?$', views.counter),
+    path(r'api/count$', views.counter),
     path(r'(/)?$', views.index),
 ]
