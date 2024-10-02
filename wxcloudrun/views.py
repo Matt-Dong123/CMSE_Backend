@@ -37,7 +37,6 @@ def counter(request, _):
                            )
     logger.info(f"request: {request.META}")
     logger.info(f"request: {request.META.get('X_WX_OPENID')}")
-    logger.info(f"request: {request.META.get('HTTP_X_WX_OPENID')}")
     logger.info('response result: {}'.format(rsp.content.decode('utf-8')))
     return rsp
 
