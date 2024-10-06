@@ -48,6 +48,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    "user",
+    "activity",
+    "group",
     "rest_framework",
     "django_filters",
     'wxcloudrun'
@@ -90,10 +93,10 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': os.environ.get("MYSQL_DATABASE", 'django_demo'),
-        'USER': os.environ.get("MYSQL_USERNAME"),
-        'HOST': os.environ.get("MYSQL_ADDRESS").split(':')[0],
-        'PORT': os.environ.get("MYSQL_ADDRESS").split(':')[1],
-        'PASSWORD': os.environ.get("MYSQL_PASSWORD"),
+        'USER': os.environ.get("MYSQL_USERNAME", 'root'),
+        'HOST': os.environ.get("MYSQL_ADDRESS","localhost:3306").split(':')[0],
+        'PORT': os.environ.get("MYSQL_ADDRESS","localhost:3306").split(':')[1],
+        'PASSWORD': os.environ.get("MYSQL_PASSWORD", 'DRyanQ6W'),
         'OPTIONS': {'charset': 'utf8mb4'},
     }
 }
@@ -208,6 +211,6 @@ STATIC_URL = '/static/'
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
 LOGS_DIR = '/data/logs/'

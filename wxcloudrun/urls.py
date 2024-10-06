@@ -19,6 +19,6 @@ from django.urls import path, include
 from wxcloudrun import views
 
 urlpatterns = [
-    path("api/count", include("wxcloudrun.urls")),
+    # path("api/count", include("wxcloudrun.urls")),
     # path(r'(/)?$', views.index),
 ]

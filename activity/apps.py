@@ -1,6 +1,7 @@
 from django.apps import AppConfig
 
 
-class AppNameConfig(AppConfig):
+class ActivityConfig(AppConfig):
     default_auto_field = 'django.db.models.AutoField'
-    name = 'wxcloudrun'
+    name = 'activity'
+    verbose_name = "活动"

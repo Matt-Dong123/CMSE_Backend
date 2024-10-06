@@ -1,6 +1,7 @@
 from django.apps import AppConfig
 
 
-class AppNameConfig(AppConfig):
+class UserConfig(AppConfig):
     default_auto_field = 'django.db.models.AutoField'
-    name = 'wxcloudrun'
+    name = 'user'
+    verbose_name = "用户"
