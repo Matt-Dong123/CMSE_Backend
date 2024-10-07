@@ -8,7 +8,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
 from sysoptions.models import Files
-from wxcloudrun.settings import COS_BUCKET, CRET_PATH
+from wxcloudrun.settings import ENVID
 
 logger = logging.getLogger(__name__)
 
@@ -32,7 +32,7 @@ def get_upload_url(request):
         raise ValidationError({"path": "path is required"})
 
     payload = {
-        "env": COS_BUCKET,
+        "env": ENVID,
         "path": path
     }
     url = f"https://api.weixin.qq.com/tcb/uploadfile"
