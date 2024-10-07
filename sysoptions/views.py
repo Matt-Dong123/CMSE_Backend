@@ -37,7 +37,7 @@ def get_upload_url(request):
     }
     logger.info(f"payload: {payload}")
     try:
-        response = requests.post(url, data=payload)
+        response = requests.post(url, data=payload,verify=False)
         response.raise_for_status()
         response = response.json()
         logger.info(f"response: {response}")
