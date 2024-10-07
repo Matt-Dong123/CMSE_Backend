@@ -38,7 +38,7 @@ def get_upload_url(request):
     url = f"https://api.weixin.qq.com/tcb/uploadfile"
     print(f"payload: {payload}")
     try:
-        response = requests.post(url, json=payload, verify=CRET_PATH)
+        response = requests.post(url, json=payload, verify=False)
         response.raise_for_status()
         response = response.json()
         print(f"response: {response}")
