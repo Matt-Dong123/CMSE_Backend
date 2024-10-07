@@ -2,6 +2,7 @@ import logging
 
 import requests
 from django.utils import timezone
+from rest_framework.exceptions import ValidationError
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
@@ -25,13 +26,14 @@ def sys_time(request):
 @permission_classes(permission_classes=(AllowAny,))
 def get_upload_url(request):
     """获取上传文件的url"""
-    serializer = FileUploadSerializer(data=request.data)
-    serializer.is_valid(raise_exception=True)
+    path = request.query_params.get("path")
+    if not path:
+        raise ValidationError({"path": "path is required"})
 
     url = "https://api.weixin.qq.com/tcb/uploadfile"
     payload = {
         "env": COS_BUCKET,
-        "path": serializer.validated_data["path"]
+        "path": path
     }
     logger.info(f"payload: {payload}")
     try:
