@@ -16,9 +16,9 @@ Including another URLconf
 
 from django.urls import path, include
 
-from wxcloudrun import views
-
 urlpatterns = [
-    # path("api/count", include("wxcloudrun.urls")),
-    # path(r'(/)?$', views.index),
+    path("api/", include("activity.urls")),
+    path("api/", include("group.urls")),
+    path("api/", include("user.urls")),
+    path("api/", include("sysoptions.urls")),
 ]
