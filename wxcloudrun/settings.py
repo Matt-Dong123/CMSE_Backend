@@ -9,11 +9,10 @@ if not os.path.exists(LOG_PATH): os.mkdir(LOG_PATH)  # 如果不存在这个logs
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve(strict=True).parent.parent
 
-
-
-
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-_&03zc)d*3)w-(0grs-+t-0jjxktn7k%$3y6$9=x_n_ibg4js6'
+
+COS_BUCKET = os.environ.get("COS_BUCKET", "7072-prod-0gefozow13dd7576-1329444134")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -53,7 +52,7 @@ INSTALLED_APPS = [
     "group",
     "rest_framework",
     "django_filters",
-    'wxcloudrun'
+    "sysoptions",
 ]
 
 MIDDLEWARE = [
@@ -94,8 +93,8 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': os.environ.get("MYSQL_DATABASE", 'django_demo'),
         'USER': os.environ.get("MYSQL_USERNAME", 'root'),
-        'HOST': os.environ.get("MYSQL_ADDRESS","localhost:3306").split(':')[0],
-        'PORT': os.environ.get("MYSQL_ADDRESS","localhost:3306").split(':')[1],
+        'HOST': os.environ.get("MYSQL_ADDRESS", "localhost:3306").split(':')[0],
+        'PORT': os.environ.get("MYSQL_ADDRESS", "localhost:3306").split(':')[1],
         'PASSWORD': os.environ.get("MYSQL_PASSWORD", 'DRyanQ6W'),
         'OPTIONS': {'charset': 'utf8mb4'},
     }

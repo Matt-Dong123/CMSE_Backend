@@ -2,7 +2,7 @@ from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
 from sysoptions.views import (
-    sys_time,
+    sys_time, get_upload_url,
 )
 
 user_router = DefaultRouter()
@@ -20,5 +20,6 @@ manage_router = DefaultRouter()
 urlpatterns = [
     path("manage/", include(manage_router.urls)),
     path("", include(user_router.urls)),
-    path("info/time/", sys_time),
+    path("sys/time/", sys_time),
+    path("sys/upload/", get_upload_url),
 ]
