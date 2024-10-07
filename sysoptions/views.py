@@ -35,15 +35,15 @@ def get_upload_url(request):
         "env": COS_BUCKET,
         "path": path
     }
-    logger.info(f"payload: {payload}")
+    print(f"payload: {payload}")
     try:
         response = requests.post(url, data=payload,verify=False)
         response.raise_for_status()
         response = response.json()
-        logger.info(f"response: {response}")
+        print(f"response: {response}")
         if response["errcode"] != 0:
-            raise Exception(response.json())
-        Files.objects.create(file_id=response.json()["file_id"])
+            raise Exception(response)
+        Files.objects.create(file_id=response["file_id"])
     except Exception as e:
         return Response(data={"error": str(e)}, status=500)
 
