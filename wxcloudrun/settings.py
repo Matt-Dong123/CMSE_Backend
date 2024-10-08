@@ -7,7 +7,6 @@ LOG_PATH = os.path.join(os.path.dirname(CUR_PATH), "logs")  # LOG_PATH是存放�
 CRET_PATH = os.path.join(os.path.dirname(CUR_PATH), "cert")  # CRET_PATH是存放证书的路径
 if not os.path.exists(LOG_PATH): os.mkdir(LOG_PATH)  # 如果不存在这个logs文件夹，就自动创建一个
 
-
 BASE_DIR = Path(__file__).resolve(strict=True).parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
@@ -28,7 +27,10 @@ REST_FRAMEWORK = {
         "rest_framework.parsers.JSONParser",
         "rest_framework.parsers.MultiPartParser",
     ),
-    "DEFAULT_AUTHENTICATION_CLASSES": ("rest_framework.authentication.SessionAuthentication",),
+    "DEFAULT_AUTHENTICATION_CLASSES": (
+        "utils.auth.WXOpenIDAuthentication",
+        "rest_framework.authentication.SessionAuthentication",
+    ),
     "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
     "DEFAULT_PAGINATION_CLASS": "wxcloudrun.pagination.MaxLimitPagination",
     "PAGE_SIZE": 10,
@@ -61,12 +63,17 @@ MIDDLEWARE = [
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     # 'django.middleware.csrf.CsrfViewMiddleware',
+    "utils.oid_middleware.WXOpenIDAuthenticationMiddleware",
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
 ROOT_URLCONF = 'wxcloudrun.urls'
+
+
+AUTH_USER_MODEL = "user.User"
+
 
 TEMPLATES = [
     {
