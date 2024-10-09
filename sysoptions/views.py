@@ -4,10 +4,11 @@ import requests
 from django.utils import timezone
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.exceptions import ValidationError
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
 from sysoptions.models import Files
+from user.permissions import PermissionAdmin
 from wxcloudrun.settings import ENVID
 
 logger = logging.getLogger(__name__)
@@ -29,11 +30,14 @@ def sys_time(request):
     else:
         data["user"] = "Anonymous"
 
+    data["meta"] = request.META
+    data["oid"] = request.META.get("X_WX_OPENID")
+
     return Response(data)
 
 
 @api_view(("GET",))
-@permission_classes(permission_classes=(AllowAny,))
+@permission_classes(permission_classes=(IsAuthenticated, PermissionAdmin))
 def get_upload_url(request):
     """获取上传文件的url"""
     path = request.query_params.get("path")
