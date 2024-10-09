@@ -33,7 +33,7 @@ if DEBUG:
         openapi.Info(
             title="OJ API",
             default_version="v1",
-            description="OJ API文档",
+            description="API文档",
         ),
     )
     urlpatterns += [
