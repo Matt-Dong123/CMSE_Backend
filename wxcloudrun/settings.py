@@ -72,7 +72,7 @@ MIDDLEWARE = [
 ROOT_URLCONF = 'wxcloudrun.urls'
 
 
-AUTH_USER_MODEL = "user.User"
+
 
 
 TEMPLATES = [
@@ -90,6 +90,8 @@ TEMPLATES = [
         },
     },
 ]
+
+AUTH_USER_MODEL = "user.User"
 
 WSGI_APPLICATION = 'wxcloudrun.wsgi.application'
 

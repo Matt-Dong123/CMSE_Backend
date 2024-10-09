@@ -2,6 +2,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AnonymousUser
 from django.utils.deprecation import MiddlewareMixin
 
+from user.models import User
 
 class WXOpenIDAuthenticationMiddleware(MiddlewareMixin):
     def process_request(self, request):
@@ -10,7 +11,7 @@ class WXOpenIDAuthenticationMiddleware(MiddlewareMixin):
             request.user = AnonymousUser()
             return
 
-        User = get_user_model()
+
         try:
             user = User.objects.get(openid=openid)
             request.user = user
