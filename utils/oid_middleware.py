@@ -10,8 +10,6 @@ class WXOpenIDAuthenticationMiddleware(MiddlewareMixin):
         if not openid:
             request.user = AnonymousUser()
             return
-
-
         try:
             user = User.objects.get(openid=openid)
             request.user = user

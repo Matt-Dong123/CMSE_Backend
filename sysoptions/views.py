@@ -20,18 +20,13 @@ logger = logging.getLogger(__name__)
 @permission_classes(permission_classes=(AllowAny,))
 def sys_time(request):
     """获取服务器本地时间"""
-
     user = request.user
-
     data = {"local_time": timezone.localtime()}
-
     if user.is_authenticated:
         data["user"] = user.username
     else:
         data["user"] = "Anonymous"
-
-    data["meta"] = str(request.META)
-    data["oid"] = str(request.META.get("HTTP_X_WX_OPENID"))
+    data["openid"] = str(request.META.get("HTTP_X_WX_OPENID"))
 
     return Response(data)
 
