@@ -5,7 +5,7 @@ from rest_framework.exceptions import AuthenticationFailed
 
 class WXOpenIDAuthentication(BaseAuthentication):
     def authenticate(self, request):
-        openid = request.META.get('X_WX_OPENID')
+        openid = request.META.get('HTTP_X_WX_OPENID')
         if not openid:
             return None
         try:

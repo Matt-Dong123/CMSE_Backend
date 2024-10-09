@@ -5,7 +5,7 @@ from django.utils.deprecation import MiddlewareMixin
 
 class WXOpenIDAuthenticationMiddleware(MiddlewareMixin):
     def process_request(self, request):
-        openid = request.META.get('X_WX_OPENID')
+        openid = request.META.get('HTTP_X_WX_OPENID')
         if not openid:
             request.user = AnonymousUser()
             return

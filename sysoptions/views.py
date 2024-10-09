@@ -31,7 +31,7 @@ def sys_time(request):
         data["user"] = "Anonymous"
 
     data["meta"] = str(request.META)
-    data["oid"] = str(request.META.get("X_WX_OPENID"))
+    data["oid"] = str(request.META.get("HTTP_X_WX_OPENID"))
 
     return Response(data)
 
