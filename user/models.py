@@ -20,15 +20,15 @@ def validate_stuid(value):
 
 class User(AbstractUser):
     openid = models.CharField("OpenID", max_length=50, unique=True, null=True)
-    stuid = models.CharField(
+    username = models.CharField(
         "学号", max_length=50, unique=True, validators=[validate_stuid]
     )
-    name = models.CharField("姓名", null=True, blank=True, max_length=50)
+    name = models.CharField("姓名", blank=True, max_length=50)
     phone = models.CharField(
         "手机号", max_length=11, null=True, blank=True, validators=[validate_phone]
     )
     isAdmin = models.BooleanField("是否管理员", default=False)
-    group = models.ForeignKey(Group, on_delete=models.SET_NULL, null=True, blank=True)
+    group = models.ForeignKey(Group, on_delete=models.SET_NULL, null=True)
 
     def __str__(self):
         return f"User: Username={self.username} name={self.name}"
