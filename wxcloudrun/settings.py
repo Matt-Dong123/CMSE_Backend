@@ -17,7 +17,7 @@ ENVID = os.environ.get("ENVID", "prod-0gefozow13dd7576")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-if os.environ.get("DEBUG").upper() == "TRUE":
+if os.environ.get("DEBUG", "NONE").upper() == "TRUE":
     DEBUG = True
 ALLOWED_HOSTS = ['*']
 
