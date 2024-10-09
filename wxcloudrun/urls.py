@@ -16,6 +16,7 @@ Including another URLconf
 
 from django.contrib import admin
 from django.urls import path, include
+from rest_framework import permissions
 
 from wxcloudrun.settings import DEBUG
 
@@ -40,6 +41,7 @@ if DEBUG:
             default_version="v1",
             description="API文档",
         ),
+        permission_classes=[permissions.AllowAny],
     )
     urlpatterns += [
         path("admin/", admin.site.urls),
