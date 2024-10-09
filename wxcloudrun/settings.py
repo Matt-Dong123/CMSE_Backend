@@ -15,8 +15,10 @@ SECRET_KEY = 'django-insecure-_&03zc)d*3)w-(0grs-+t-0jjxktn7k%$3y6$9=x_n_ibg4js6
 ENVID = os.environ.get("ENVID", "prod-0gefozow13dd7576")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
+if os.environ.get("DEBUG"):
+    DEBUG = True
 ALLOWED_HOSTS = ['*']
 
 # Application definition
@@ -71,10 +73,6 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'wxcloudrun.urls'
 
-
-
-
-
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -127,6 +125,20 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
+
+if DEBUG:
+    def show_toolbar(request):
+        return True
+
+
+    debug_app = [
+        "debug_toolbar",
+        "drf_yasg",
+        "utils.rest_framework_bulk.tests.simple_app",
+    ]
+    INSTALLED_APPS.extend(debug_app)
+    MIDDLEWARE.insert(0, "debug_toolbar.middleware.DebugToolbarMiddleware")
+    DEBUG_TOOLBAR_CONFIG = {"SHOW_TOOLBAR_CALLBACK": "wxcloudrun.settings.show_toolbar"}
 
 LOGGING = {
     'version': 1,
