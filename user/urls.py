@@ -21,28 +21,3 @@ urlpatterns = [
     path("", include(user_router.urls)),
 ]
 
-if DEBUG:
-    import debug_toolbar
-    from django.conf import settings
-    from django.conf.urls.static import static
-
-    from drf_yasg import openapi
-    from drf_yasg.views import get_schema_view
-
-    schema_view = get_schema_view(
-        openapi.Info(
-            title="OJ API",
-            default_version="v1",
-            description="API文档",
-        ),
-    )
-    urlpatterns += [
-        path("admin/", admin.site.urls),
-        path(
-            "api/docs/",
-            schema_view.with_ui("redoc", cache_timeout=0),
-            name="schema-redoc",
-        ),
-        path("__debug__/", include(debug_toolbar.urls)),
-    ]
-    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
