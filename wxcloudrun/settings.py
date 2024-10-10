@@ -21,6 +21,8 @@ if os.environ.get("DEBUG", "NONE").upper() == "TRUE":
     DEBUG = True
 ALLOWED_HOSTS = ['*']
 
+CSRF_TRUSTED_ORIGINS = ["https://*.tcloudbase.com"]
+
 # Application definition
 
 REST_FRAMEWORK = {
