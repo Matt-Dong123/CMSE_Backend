@@ -5,6 +5,10 @@ from pathlib import Path
 CUR_PATH = os.path.dirname(os.path.realpath(__file__))
 LOG_PATH = os.path.join(os.path.dirname(CUR_PATH), "logs")  # LOG_PATH是存放日志的路径
 CRET_PATH = os.path.join(os.path.dirname(CUR_PATH), "cert")  # CRET_PATH是存放证书的路径
+
+TEMP_PATH = os.path.join(os.path.dirname(CUR_PATH), "temp")  # TEMP_PATH是存放临时文件的路径
+
+
 if not os.path.exists(LOG_PATH): os.mkdir(LOG_PATH)  # 如果不存在这个logs文件夹，就自动创建一个
 
 BASE_DIR = Path(__file__).resolve(strict=True).parent.parent

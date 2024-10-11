@@ -36,7 +36,7 @@ if DEBUG:
 
     schema_view = get_schema_view(
         openapi.Info(
-            title="OJ API",
+            title="API",
             default_version="v1",
             description="API文档",
         ),

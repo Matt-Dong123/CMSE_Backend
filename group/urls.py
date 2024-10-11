@@ -1,17 +1,14 @@
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
+from group.views import GradeManageViewSet, GroupManageViewSet
+
 user_router = DefaultRouter()
 
 manage_router = DefaultRouter()
 
-# manage_router.register("log", LogManageViewSet)
-# manage_router.register("auditlog", AuditLogViewSet)
-# manage_router.register("sys/options", SysOptionManageViewSet)
-# manage_router.register("sys/migrations", MigrationRecorderViewSet)
-# manage_router.register("sys/contenttypes", ContentTypeViewSet)
-# manage_router.register("sys/utils", UtilsViewSet, basename="sys-utils")
-
+manage_router.register("grade", GradeManageViewSet)
+manage_router.register("group", GroupManageViewSet)
 
 urlpatterns = [
     path("manage/", include(manage_router.urls)),
