@@ -5,13 +5,15 @@ from functools import lru_cache
 from string import ascii_letters, digits
 from typing import List
 
-
+import requests
 from django.core.files import File
 from django.utils.translation import gettext_lazy as _
 from rest_framework.exceptions import APIException, ValidationError
 from rest_framework.request import Request
+from rest_framework.response import Response
 
-from wxcloudrun.settings import TEMP_PATH
+from sysoptions.models import Files
+from wxcloudrun.settings import TEMP_PATH, ENVID
 
 
 @lru_cache
@@ -43,10 +45,10 @@ def is_update_method(request: Request):
 
 
 def fetch_files(
-    request: Request,
-    verified_file_suffix: List[str] = None,
-    file_dir: str = "",
-    file_key: str = "file",
+        request: Request,
+        verified_file_suffix: List[str] = None,
+        file_dir: str = "",
+        file_key: str = "file",
 ):
     """从request中获取文件并下载至Project.MEDIA_ROOT中
 
@@ -66,7 +68,7 @@ def fetch_files(
         # file: File
         if verified_file_suffix is not None:  # 校验后缀
             idx = file.name.rfind(".")
-            suffix: str = file.name[idx + 1 :]
+            suffix: str = file.name[idx + 1:]
             suffix = suffix.lower()
             if idx == -1 or suffix not in verified_file_suffix:
                 raise ValidationError(detail=f"{file.name} 格式不符合 {verified_file_suffix}")
@@ -106,8 +108,6 @@ def get_digest_token(token):
     return hashlib.sha256(token.encode("utf-8")).hexdigest()
 
 
-
-
 def get_dict_digest(d: dict):
     """dict hash"""
     return hashlib.md5(str(d).encode("utf-8")).hexdigest()
@@ -118,6 +118,57 @@ def action_route_helper(action: str, action_map: dict, default=None):
     if action not in action_map and default is None:
         raise APIException(_("action 无匹配且没有设置默认值"))
     return action_map.get(action, default)
+
+
+def batch_download_file(file_id: List[str], max_age: int = 7200):
+    """批量下载文件"""
+    payload = {
+        "env": ENVID,
+        "file_list": [{"fileid": it, "max_age": max_age} for it in file_id]
+    }
+    url = f"https://api.weixin.qq.com/tcb/batchdownloadfile"
+
+    response = requests.post(url, json=payload, verify=False)
+    response.raise_for_status()
+    response = response.json()
+    if response["errcode"] != 0:
+        raise Exception(response)
+    return response
+
+
+def single_upload_file(path: str):
+    """上传单个文件"""
+    payload = {
+        "env": ENVID,
+        "path": path
+    }
+    url = f"https://api.weixin.qq.com/tcb/uploadfile"
+    print(f"payload: {payload}")
+    try:
+        response = requests.post(url, json=payload, verify=False)
+        response.raise_for_status()
+        response = response.json()
+        print(f"response: {response}")
+        if response["errcode"] != 0:
+            raise Exception(response)
+    except Exception as e:
+        return Response(data={"error": str(e)}, status=500)
+    return response
+
+
+def batch_delete_file(file_id: List[str]):
+    """批量删除文件"""
+    payload = {
+        "env": ENVID,
+        "fileid_list": file_id
+    }
+    url = f"https://api.weixin.qq.com/tcb/batchdeletefile"
+    response = requests.post(url, json=payload, verify=False)
+    response.raise_for_status()
+    response = response.json()
+    if response["errcode"] != 0:
+        raise Exception(response)
+    return response
 
 
 def pairs_generator(num: int):

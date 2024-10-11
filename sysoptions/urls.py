@@ -2,7 +2,7 @@ from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
 from sysoptions.views import (
-    sys_time, get_upload_url,
+    sys_time, get_upload_url, get_download_url, get_delete_url,get_env_id
 )
 
 user_router = DefaultRouter()
@@ -22,4 +22,8 @@ urlpatterns = [
     path("", include(user_router.urls)),
     path("sys/time/", sys_time),
     path("sys/upload/", get_upload_url),
+    path("sys/download/", get_download_url),
+    path("sys/delete/", get_delete_url),
+    path("sys/env/", get_env_id),
+
 ]

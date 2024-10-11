@@ -3,9 +3,6 @@ from rest_framework.request import Request
 
 
 # 接口PERMISSION的访问流程 has_permission -> has_object_permission
-# 缓存contest与group数据
-# 缓存contest、group、problem数据
-
 
 def permission_admin(request: Request) -> bool:
     return (

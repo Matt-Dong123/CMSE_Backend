@@ -9,6 +9,7 @@ from rest_framework.response import Response
 
 from sysoptions.models import Files
 from user.permissions import PermissionAdmin
+from utils.common_utils import single_upload_file, batch_download_file, batch_delete_file
 from wxcloudrun.settings import ENVID
 
 logger = logging.getLogger(__name__)
@@ -38,22 +39,48 @@ def get_upload_url(request):
     path = request.query_params.get("path")
     if not path:
         raise ValidationError({"path": "path is required"})
+    ret = single_upload_file(path)
+    Files.objects.create(file_id=ret["file_id"])
+    return Response(ret)
 
-    payload = {
-        "env": ENVID,
-        "path": path
-    }
-    url = f"https://api.weixin.qq.com/tcb/uploadfile"
-    print(f"payload: {payload}")
-    try:
-        response = requests.post(url, json=payload, verify=False)
-        response.raise_for_status()
-        response = response.json()
-        print(f"response: {response}")
-        if response["errcode"] != 0:
-            raise Exception(response)
-        Files.objects.create(file_id=response["file_id"])
-    except Exception as e:
-        return Response(data={"error": str(e)}, status=500)
 
-    return Response(response)
+@api_view(("GET",))
+@permission_classes(permission_classes=(AllowAny,))
+def get_download_url(request):
+    """获取下载文件的url
+    : param file_id: 文件id的列表
+    """
+    file_id = request.query_params.get("file_list")
+    if not file_id:
+        raise ValidationError({"file_list": "file_id is required"})
+
+    ret = batch_download_file(file_id)
+    return Response(ret)
+
+@api_view(("GET",))
+@permission_classes(permission_classes=(IsAuthenticated, PermissionAdmin,))
+def get_delete_url(request):
+    """获取删除文件的url
+    : param file_id: 文件id的列表
+    """
+    file_id = request.query_params.get("fileid_list")
+    if not file_id:
+        raise ValidationError({"fileid_list": "file_id is required"})
+
+    ret = batch_delete_file(file_id)
+
+    fileids = []
+    for it in ret["delete_list"]:
+        if it["status"] == 0:
+            fileids.append(it["fileid"])
+
+    Files.objects.filter(file_id__in=fileids).delete()
+
+    return Response(ret)
+
+
+@api_view(("GET",))
+@permission_classes(permission_classes=(AllowAny,))
+def get_env_id(request):
+    return Response({"env_id": ENVID})
+
