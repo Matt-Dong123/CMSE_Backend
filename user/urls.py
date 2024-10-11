@@ -1,23 +1,17 @@
-from django.contrib import admin
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
-from wxcloudrun.settings import DEBUG
+from user.views import RegisterManageViewSet, UserViewSet
 
 user_router = DefaultRouter()
 
+user_router.register("user", UserViewSet)
+
 manage_router = DefaultRouter()
 
-# manage_router.register("log", LogManageViewSet)
-# manage_router.register("auditlog", AuditLogViewSet)
-# manage_router.register("sys/options", SysOptionManageViewSet)
-# manage_router.register("sys/migrations", MigrationRecorderViewSet)
-# manage_router.register("sys/contenttypes", ContentTypeViewSet)
-# manage_router.register("sys/utils", UtilsViewSet, basename="sys-utils")
-
+manage_router.register("register", RegisterManageViewSet)
 
 urlpatterns = [
     path("manage/", include(manage_router.urls)),
     path("", include(user_router.urls)),
 ]
-
