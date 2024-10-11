@@ -24,8 +24,8 @@ class GroupManageViewSet(ModelViewSet):
     permission_classes = (IsAuthenticated, PermissionAdmin)
     filter_backends = (DjangoFilterBackend, filters.SearchFilter)
     filterset_fields = (
-        "course__id",
-        "course__name",
+        "grade__id",
+        "grade__name",
     )
     search_fields = ("name",)
 
