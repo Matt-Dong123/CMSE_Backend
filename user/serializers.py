@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
 from group.models import Group
+from group.serializers import GroupSerializer
 from user.models import Register, User
 
 
@@ -30,18 +31,60 @@ class UserRegisterSerializer(serializers.ModelSerializer):
 
 
 class UserProfileSerializer(serializers.ModelSerializer):
+    group = GroupSerializer()
+
     class Meta:
         model = User
-        exclude = ("password", "is_active", "first_name", "last_name")
+        fields = (
+            "id",
+            "openid",
+            "username",
+            "name",
+            "phone",
+            "isAdmin",
+            "group",
+        )
+
+
+class UserProfileUpdateSerializer(serializers.ModelSerializer):
+    group = serializers.PrimaryKeyRelatedField(queryset=Group.objects.all())
+
+    class Meta:
+        model = User
+        fields = (
+            "id",
+            "openid",
+            "username",
+            "name",
+            "phone",
+            "isAdmin",
+            "group",
+        )
         read_only_fields = (
             "id",
-            "username",
             "openid",
-            "isAdmin",
+            "username",
             "name",
-            "date_joined",
-            "last_login",
-            "is_staff",
-            "is_superuser",
+            "isAdmin",
             "group",
+        )
+
+
+class UserManageSerializer(serializers.ModelSerializer):
+    group = GroupSerializer()
+
+    class Meta:
+        model = User
+        fields = (
+            "id",
+            "openid",
+            "username",
+            "name",
+            "phone",
+            "isAdmin",
+            "group",
+        )
+        read_only_fields = (
+            "id",
+            "openid",
         )

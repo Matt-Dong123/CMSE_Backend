@@ -1,6 +1,6 @@
 from django.db.models import Q
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import filters, status
+from rest_framework import filters, status, mixins
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import IsAuthenticated, AllowAny
@@ -9,7 +9,8 @@ from rest_framework.viewsets import GenericViewSet, ModelViewSet
 
 from user.models import Register, User
 from user.permissions import PermissionAdmin
-from user.serializers import RegisterSerializer, UserRegisterSerializer, UserProfileSerializer
+from user.serializers import RegisterSerializer, UserRegisterSerializer, UserProfileSerializer, \
+    UserProfileUpdateSerializer, UserManageSerializer
 from utils.common_utils import is_get_method, is_update_method
 
 
@@ -19,6 +20,40 @@ class RegisterManageViewSet(ModelViewSet):
     permission_classes = (IsAuthenticated, PermissionAdmin)
     filter_backends = (DjangoFilterBackend, filters.SearchFilter)
     search_fields = ("name", "username", "group__name")
+
+    @action(methods=["post"], detail=False, url_path="batch-register")
+    def batch_register(self, request):
+        try:
+            usernames = self.request.data["username"]
+            names = self.request.data["name"]
+            groupids = self.request.data["group"]
+            assert len(usernames) == len(names) == len(groupids), "学号,姓名,班级ID数量不匹配"
+        except KeyError:
+            raise ValidationError("参数错误")
+        except AssertionError as e:
+            raise ValidationError(str(e))
+
+        existing_users = User.objects.filter(username__in=usernames)
+        existing_groupids = existing_users.values_list("group_id", flat=True)
+
+        user2create = []
+
+        failed = []
+        for username, name, groupid in zip(usernames, names, groupids):
+            if existing_users.filter(username=username).exists() or groupid not in existing_groupids:
+                failed.append(f"{username},{name},{groupid}")
+                continue
+            user2create.append(Register(username=username, name=name, group_id=groupid))
+
+        Register.objects.bulk_create(user2create)
+
+        return Response(
+            data={
+                "failed": failed,
+                "created": len(user2create)
+            },
+            status=status.HTTP_201_CREATED
+        )
 
 
 class UserViewSet(GenericViewSet):
@@ -59,16 +94,41 @@ class UserViewSet(GenericViewSet):
 
         return Response(self.get_serializer(user).data, status=status.HTTP_201_CREATED)
 
-
-    @action(methods=["get", "put"], detail=False, serializer_class=UserProfileSerializer)
+    @action(methods=["get", "put"], detail=False, serializer_class=UserProfileUpdateSerializer)
     def profile(self, request):
         """获取/修改当前用户信息"""
         user = request.user
         if is_get_method(request):
-            user_profile = self.get_serializer(user).data
+            user_profile = UserProfileSerializer(user).data
             return Response(user_profile)
         elif is_update_method(request):
             serializer = self.get_serializer(user, data=request.data)
             serializer.is_valid(raise_exception=True)
             serializer.save()
             return Response(serializer.data)
+
+
+class UserManageViewSet(mixins.RetrieveModelMixin,
+                        mixins.UpdateModelMixin,
+                        mixins.DestroyModelMixin,
+                        mixins.ListModelMixin,
+                        GenericViewSet):
+    queryset = User.objects.prefetch_related("group")
+    permission_classes = (IsAuthenticated, PermissionAdmin)
+    serializer_class = UserManageSerializer
+    filter_backends = (
+        DjangoFilterBackend,
+        filters.SearchFilter,
+        filters.OrderingFilter,
+    )
+    search_fields = ("username", "name", "phone", "group__name")
+    filterset_fields = {
+        "username": ["exact", "in"],
+        "isAdmin": ["exact"],
+        "id": ["gte", "lte", "exact", "gt", "lt", "in"],
+    }
+
+    def get_serializer_class(self):
+        if is_update_method(self.action):
+            return UserProfileUpdateSerializer
+        return UserProfileSerializer

@@ -55,4 +55,4 @@ class Register(models.Model):
     class Meta:
         db_table = "register"
         ordering = ("-id",)
-        verbose_name = "注册码"
+        verbose_name = "注册信息"
