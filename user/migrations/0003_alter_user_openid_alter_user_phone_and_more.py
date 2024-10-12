@@ -21,7 +21,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='user',
             name='phone',
-            field=models.CharField(max_length=11, validators=[user.models.validate_phone], verbose_name='手机号'),
+            field=models.CharField(max_length=11,  verbose_name='手机号'),
         ),
         migrations.AlterField(
             model_name='user',
@@ -32,7 +32,7 @@ class Migration(migrations.Migration):
             name='Register',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('username', models.CharField(max_length=15, unique=True, validators=[user.models.validate_stuid], verbose_name='学号')),
+                ('username', models.CharField(max_length=15, unique=True, verbose_name='学号')),
                 ('name', models.CharField(max_length=20, verbose_name='姓名')),
                 ('group', models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, to='group.group')),
             ],
