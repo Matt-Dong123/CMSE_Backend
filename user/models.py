@@ -3,21 +3,6 @@ from django.db import models
 
 from group.models import Group
 
-
-def validate_phone(value):
-    if len(value) != 11:
-        raise ValueError("手机号长度不正确")
-    if not value.isdigit():
-        raise ValueError("手机号格式不正确")
-
-
-def validate_stuid(value):
-    if len(value) != 10:
-        raise ValueError("学号长度不正确")
-    if not value.isdigit():
-        raise ValueError("学号格式不正确")
-
-
 '''
 先由管理员-> 导入注册信息 -> 学生注册 
 
@@ -27,10 +12,8 @@ def validate_stuid(value):
 class User(AbstractUser):
     openid = models.CharField("OpenID", max_length=30)
     username = models.CharField("学号", max_length=15, unique=True)
-    name = models.CharField("姓名", blank=True, max_length=50)
-    phone = models.CharField(
-        "手机号", max_length=11, validators=[validate_phone]
-    )
+    name = models.CharField("姓名", max_length=50)
+    phone = models.CharField("手机号", max_length=11)
     isAdmin = models.BooleanField("是否管理员", default=False)
     group = models.ForeignKey(Group, on_delete=models.SET_NULL, null=True)
 
@@ -45,7 +28,7 @@ class User(AbstractUser):
 
 class Register(models.Model):
     """注册关系"""
-    username = models.CharField("学号", max_length=15, unique=True, validators=[validate_stuid])
+    username = models.CharField("学号", max_length=15, unique=True)
     name = models.CharField("姓名", max_length=20)
     group = models.ForeignKey(Group, on_delete=models.SET_NULL, null=True)
 

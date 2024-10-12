@@ -1,3 +1,6 @@
+from collections import OrderedDict
+
+from django.db import transaction
 from django.db.models import Q
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, status, mixins
@@ -40,22 +43,31 @@ class RegisterManageViewSet(ModelViewSet):
             usernames = self.request.data["username"]
             names = self.request.data["name"]
             groupids = self.request.data["group"]
+            usernames = list(OrderedDict.fromkeys(usernames))  # 去重
             assert len(usernames) == len(names) == len(groupids), "学号,姓名,班级ID数量不匹配"
         except KeyError:
             raise ValidationError("参数错误")
         except AssertionError as e:
             raise ValidationError(str(e))
 
-        existing_users = User.objects.filter(username__in=usernames)
-        existing_groupids = Group.objects.values_list("id", flat=True)
+        existing_users = (list(User.objects.filter(username__in=usernames).values_list("username", flat=True))
+                          + list(Register.objects.filter(username__in=usernames).values_list("username", flat=True)))
+        existing_groupids = list(Group.objects.filter(id__in=groupids).values_list("id", flat=True))
 
         user2create = []
 
         failed = []
         for username, name, groupid in zip(usernames, names, groupids):
-            if existing_users.filter(username=username).exists() or groupid not in existing_groupids:
-                failed.append(f"{username},{name},{groupid}")
+            if not username.isdigit() or len(username) != 10:
+                failed.append({"username": username, "reason": "学号格式错误"})
                 continue
+            if username in existing_users:
+                failed.append({"username": username, "reason": "学号已存在"})
+                continue
+            if groupid not in existing_groupids:
+                failed.append({"username": username, "reason": "班级不存在"})
+                continue
+
             user2create.append(Register(username=username, name=name, group_id=groupid))
 
         Register.objects.bulk_create(user2create)
@@ -99,11 +111,11 @@ class UserViewSet(GenericViewSet):
         if User.objects.filter(Q(username=username) | Q(openid=openid)).exists():
             raise ValidationError("当前用户名已被注册或当前openid已经注册")
 
-        user = User.objects.create_user(
-            openid=openid, username=username, name=name, phone=phone, group=group, password=username, isAdmin=False
-        )
-
-        Register.objects.filter(username=username).delete()
+        with transaction.atomic():
+            user = User.objects.create_user(
+                openid=openid, username=username, name=name, phone=phone, group=group, password=username, isAdmin=False
+            )
+            Register.objects.filter(username=username).delete()
 
         return Response(self.get_serializer(user).data, status=status.HTTP_201_CREATED)
 
