@@ -30,12 +30,6 @@ class RegisterManageViewSet(ModelViewSet):
             return RegisterUpdateSerializer
         return RegisterSerializer
 
-    def create(self, request, *args, **kwargs):
-        # 重写create方法，防止用户重复注册
-        username = request.data.get("username")
-        if User.objects.filter(username=username).exists():
-            raise ValidationError("用户已存在")
-        return super().create(request, *args, **kwargs)
 
     @action(methods=["post"], detail=False, url_path="batch-register")
     def batch_register(self, request):
