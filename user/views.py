@@ -7,10 +7,11 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet, ModelViewSet
 
+from group.models import Group
 from user.models import Register, User
 from user.permissions import PermissionAdmin
 from user.serializers import RegisterSerializer, UserRegisterSerializer, UserProfileSerializer, \
-    UserProfileUpdateSerializer, UserManageSerializer
+    UserProfileUpdateSerializer, UserManageSerializer, RegisterUpdateSerializer
 from utils.common_utils import is_get_method, is_update_method
 
 
@@ -20,6 +21,18 @@ class RegisterManageViewSet(ModelViewSet):
     permission_classes = (IsAuthenticated, PermissionAdmin)
     filter_backends = (DjangoFilterBackend, filters.SearchFilter)
     search_fields = ("name", "username", "group__name")
+
+    def get_serializer_class(self):
+        if is_update_method(self.action):
+            return RegisterUpdateSerializer
+        return RegisterSerializer
+
+    def create(self, request, *args, **kwargs):
+        # 重写create方法，防止用户重复注册
+        username = request.data.get("username")
+        if User.objects.filter(username=username).exists():
+            raise ValidationError("用户已存在")
+        return super().create(request, *args, **kwargs)
 
     @action(methods=["post"], detail=False, url_path="batch-register")
     def batch_register(self, request):
@@ -34,7 +47,7 @@ class RegisterManageViewSet(ModelViewSet):
             raise ValidationError(str(e))
 
         existing_users = User.objects.filter(username__in=usernames)
-        existing_groupids = existing_users.values_list("group_id", flat=True)
+        existing_groupids = Group.objects.values_list("id", flat=True)
 
         user2create = []
 

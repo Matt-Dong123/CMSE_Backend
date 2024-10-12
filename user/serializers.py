@@ -5,12 +5,21 @@ from group.serializers import GroupSerializer
 from user.models import Register, User
 
 
-class RegisterSerializer(serializers.ModelSerializer):
+class RegisterUpdateSerializer(serializers.ModelSerializer):
     group = serializers.PrimaryKeyRelatedField(queryset=Group.objects.all())
 
     class Meta:
         model = Register
         fields = "__all__"
+
+class RegisterSerializer(serializers.ModelSerializer):
+    group = GroupSerializer()
+
+    class Meta:
+        model = Register
+        fields = "__all__"
+
+
 
 
 class UserOnlyNameSerializer(serializers.ModelSerializer):
