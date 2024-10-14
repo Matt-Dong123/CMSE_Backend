@@ -12,11 +12,10 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ReadOnlyModelViewSet, ModelViewSet
 
 from activity.models import Activity, Attender
-from activity.serializers import ActivityReadSerializer, ActivityUpdateSerializer, AttenderSerializer, \
-    ActivityMixinSerializer
+from activity.serializers import ActivityReadSerializer, ActivityUpdateSerializer, AttenderSerializer
 from user.models import User
 from user.permissions import PermissionAdmin, permission_admin
-from utils.common_utils import is_update_method, is_post_method
+from utils.common_utils import is_update
 
 
 class ActivityFilter(FilterSet):
@@ -116,10 +115,8 @@ class ActivityManageViewSet(ModelViewSet):
         return super().create(request, *args, **kwargs)
 
     def get_serializer_class(self):
-        if is_update_method(self.request):
+        if is_update(self.request):
             return ActivityUpdateSerializer
-        elif is_post_method(self.request):
-            return ActivityMixinSerializer
         return self.serializer_class
 
     @action(methods=["get"], detail=True, url_path="generate_code")
