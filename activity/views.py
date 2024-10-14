@@ -12,10 +12,11 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ReadOnlyModelViewSet, ModelViewSet
 
 from activity.models import Activity, Attender
-from activity.serializers import ActivityReadSerializer, ActivityUpdateSerializer, AttenderSerializer
+from activity.serializers import ActivityReadSerializer, ActivityUpdateSerializer, AttenderSerializer, \
+    ActivityMixinSerializer
 from user.models import User
 from user.permissions import PermissionAdmin, permission_admin
-from utils.common_utils import is_update_method
+from utils.common_utils import is_update_method, is_post_method
 
 
 class ActivityFilter(FilterSet):
@@ -47,7 +48,7 @@ class ActivityViewSet(ReadOnlyModelViewSet):
     permission_classes = (IsAuthenticated,)
     serializer_class = ActivityReadSerializer
     filter_backends = (DjangoFilterBackend, filters.SearchFilter)
-    filter_class = ActivityFilter
+    filterset_class = ActivityFilter
     search_fields = (
         "name", "description", "location", "creator__name"
     )
@@ -105,7 +106,7 @@ class ActivityManageViewSet(ModelViewSet):
     permission_classes = (IsAuthenticated, PermissionAdmin,)
     serializer_class = ActivityReadSerializer
     filter_backends = (DjangoFilterBackend, filters.SearchFilter)
-    filter_class = ActivityFilter
+    filterset_class = ActivityFilter
     search_fields = (
         "name", "description", "location", "creator__name"
     )
@@ -117,6 +118,8 @@ class ActivityManageViewSet(ModelViewSet):
     def get_serializer_class(self):
         if is_update_method(self.request):
             return ActivityUpdateSerializer
+        elif is_post_method(self.request):
+            return ActivityMixinSerializer
         return self.serializer_class
 
     @action(methods=["get"], detail=True, url_path="generate_code")

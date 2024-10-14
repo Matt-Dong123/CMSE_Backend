@@ -24,6 +24,7 @@ class ActivityMixinSerializer(serializers.ModelSerializer):
         )
 
 
+
 class ActivityReadSerializer(ActivityMixinSerializer):
     creator = UserSimpleSerializer()
     get_attenders_count = serializers.IntegerField()
