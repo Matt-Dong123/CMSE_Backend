@@ -113,9 +113,7 @@ class ActivityManageViewSet(ModelViewSet):
     )
 
     def create(self, request, *args, **kwargs):
-        request.data._mutable = True
         request.data["creator"] = request.user.id
-        request.data._mutable = False
         logger.warning(f"User {request.user} create activity {str(request.data)}")
         return super().create(request, *args, **kwargs)
 
