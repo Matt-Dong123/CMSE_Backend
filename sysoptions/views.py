@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 def sys_time(request):
     """获取服务器本地时间"""
     user = request.user
-    data = {"local_time": timezone.localtime()}
+    data = {"local_time": timezone.now()}
     if user.is_authenticated:
         data["user"] = user.username
     else:
