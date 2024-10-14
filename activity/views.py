@@ -17,7 +17,7 @@ from activity.serializers import ActivityReadSerializer, ActivityUpdateSerialize
 from sysoptions.views import logger
 from user.models import User
 from user.permissions import PermissionAdmin, permission_admin
-from utils.common_utils import is_update_method, is_post_method
+from utils.common_utils import is_update_method, is_post_method, to_django_time
 
 
 class ActivityFilter(FilterSet):
@@ -130,7 +130,7 @@ class ActivityManageViewSet(ModelViewSet):
         ttl = request.query_params.get("ttl", 15)
         info = {
             "code": hashlib.md5(str(uuid1()).encode()).hexdigest(),
-            "valid_until": (timezone.now() + timezone.timedelta(seconds=ttl + 1)).isoformat()
+            "valid_until": to_django_time(timezone.now() + timezone.timedelta(seconds=ttl + 1)),
         }
         activity.sign_info = info
         activity.save(update_fields=("sign_info",))

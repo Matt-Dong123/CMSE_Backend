@@ -3,6 +3,7 @@ from django.db.models import IntegerChoices
 from django.utils import timezone
 
 from user.models import User
+from utils.common_utils import to_django_time
 
 
 # Create your models here.
@@ -16,7 +17,7 @@ class ActivityType(IntegerChoices):
 
 
 def default_sign_info():
-    return dict(code="", valid_until=timezone.now().isoformat())
+    return dict(code="", valid_until=to_django_time(timezone.now()))
 
 
 class Attender(models.Model):

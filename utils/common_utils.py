@@ -1,7 +1,7 @@
 import hashlib
 import os
 import random
-from functools import lru_cache
+from datetime import datetime
 from string import ascii_letters, digits
 from typing import List
 
@@ -39,6 +39,12 @@ def is_post_method(request: Request):
 
 def is_update_method(request: Request):
     return request.method.upper() in {"PUT", "PATCH"}
+
+
+def to_django_time(dt: datetime):
+    dt = dt.isoformat()
+    """转换为django时间, 2021-08-01T12:00:00+00.00 -> 2021-08-01 12:00:00"""
+    return dt.split("+")[0].replace("T", " ")
 
 
 def is_write_method(request: Request):
