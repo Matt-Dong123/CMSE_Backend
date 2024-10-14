@@ -16,7 +16,7 @@ class ActivityType(IntegerChoices):
 
 
 def default_sign_info():
-    return dict(sign_code="", valid_until=timezone.now())
+    return dict(code="", valid_until=timezone.now())
 
 
 class Attender(models.Model):

@@ -1,3 +1,7 @@
+import hashlib
+from uuid import uuid1
+
+from django.utils import timezone
 from django_filters import CharFilter
 from django_filters import FilterSet, IsoDateTimeFilter
 from django_filters.rest_framework import DjangoFilterBackend
@@ -6,7 +10,7 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ReadOnlyModelViewSet, ModelViewSet
-from django.utils import timezone
+
 from activity.models import Activity, Attender
 from activity.serializers import ActivitySerializer
 from user.permissions import PermissionAdmin, permission_admin
@@ -103,3 +107,16 @@ class ActivityManageViewSet(ModelViewSet):
     search_fields = (
         "name", "description", "location", "creator__name"
     )
+
+    @action(methods=["get"], detail=True, url_path="generate_code")
+    def generate_code(self, request, *args, **kwargs):
+        activity = self.get_object()
+        ttl = request.query_params.get("ttl", 15)
+        info = {
+            "code": hashlib.md5(str(uuid1()).encode()).hexdigest(),
+            "valid_until": timezone.now() + timezone.timedelta(seconds=ttl + 1)
+        }
+        activity.sign_info = info
+        activity.save(update_fields=("sign_info",))
+
+        return Response({**info, "name": activity.name, "id": activity.id})
