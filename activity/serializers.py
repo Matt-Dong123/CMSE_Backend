@@ -7,7 +7,7 @@ from user.serializers import UserSimpleSerializer
 
 class ActivityMixinSerializer(serializers.ModelSerializer):
     creator = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
-    
+
     def validate(self, data):
         if data["start_time"] > data["end_time"]:
             raise serializers.ValidationError("开始时间不能大于结束时间")
@@ -23,13 +23,14 @@ class ActivityMixinSerializer(serializers.ModelSerializer):
             "location",
             "capacity",
             "type",
+            "creator",
         )
 
 
-
-class ActivityReadSerializer(ActivityMixinSerializer):
+class ActivityReadSerializer(serializers.ModelSerializer):
     creator = UserSimpleSerializer()
     get_attenders_count = serializers.IntegerField()
+
     class Meta:
         model = Activity
         fields = (
@@ -46,7 +47,7 @@ class ActivityReadSerializer(ActivityMixinSerializer):
         )
 
 
-class ActivityUpdateSerializer(ActivityMixinSerializer):
+class ActivityUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Activity
         fields = (
