@@ -16,3 +16,4 @@ pydantic~=2.4.2
 django-request-logging~=0.7.5
 django-debug-toolbar~=4.2.0
 drf-yasg~=1.21.5
+django-multiselectfield~=0.1.13

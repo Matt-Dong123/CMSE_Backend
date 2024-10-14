@@ -83,7 +83,6 @@ class UserProfileSerializer(serializers.ModelSerializer):
 
 
 class UserProfileUpdateSerializer(serializers.ModelSerializer):
-
     def validate_phone(self, value):
         if not value.isdigit():
             raise serializers.ValidationError("手机号格式不正确")
