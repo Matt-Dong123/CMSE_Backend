@@ -130,7 +130,7 @@ class ActivityManageViewSet(ModelViewSet):
         ttl = request.query_params.get("ttl", 15)
         info = {
             "code": hashlib.md5(str(uuid1()).encode()).hexdigest(),
-            "valid_until": timezone.now() + timezone.timedelta(seconds=ttl + 1)
+            "valid_until": (timezone.now() + timezone.timedelta(seconds=ttl + 1)).isoformat()
         }
         activity.sign_info = info
         activity.save(update_fields=("sign_info",))
