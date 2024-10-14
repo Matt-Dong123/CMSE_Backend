@@ -12,11 +12,9 @@ from rest_framework.exceptions import APIException, ValidationError
 from rest_framework.request import Request
 from rest_framework.response import Response
 
-from sysoptions.models import Files
 from wxcloudrun.settings import TEMP_PATH, ENVID
 
 
-@lru_cache
 def is_update(action: str) -> bool:
     """是否是创建或更新动作，包括 create（post）, update（put）, partial_update（patch）
 
@@ -26,7 +24,6 @@ def is_update(action: str) -> bool:
     return action in {"create", "update", "partial_update"}
 
 
-@lru_cache
 def is_read(action: str) -> bool:
     """读取方法"""
     return action in {"retrieve", "list"}
@@ -42,6 +39,10 @@ def is_post_method(request: Request):
 
 def is_update_method(request: Request):
     return request.method.upper() in {"PUT", "PATCH"}
+
+
+def is_write_method(request: Request):
+    return request.method.upper() in {"POST", "PUT", "PATCH"}
 
 
 def fetch_files(

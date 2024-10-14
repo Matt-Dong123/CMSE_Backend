@@ -15,7 +15,7 @@ from activity.models import Activity, Attender
 from activity.serializers import ActivityReadSerializer, ActivityUpdateSerializer, AttenderSerializer
 from user.models import User
 from user.permissions import PermissionAdmin, permission_admin
-from utils.common_utils import is_update
+from utils.common_utils import is_update, is_write_method
 
 
 class ActivityFilter(FilterSet):
@@ -115,7 +115,7 @@ class ActivityManageViewSet(ModelViewSet):
         return super().create(request, *args, **kwargs)
 
     def get_serializer_class(self):
-        if is_update(self.request):
+        if is_write_method(self.request):
             return ActivityUpdateSerializer
         return self.serializer_class
 
