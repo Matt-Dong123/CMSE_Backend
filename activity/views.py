@@ -12,8 +12,10 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ReadOnlyModelViewSet, ModelViewSet
 
 from activity.models import Activity, Attender
-from activity.serializers import ActivitySerializer
+from activity.serializers import ActivityReadSerializer, ActivityUpdateSerializer, AttenderSerializer
+from user.models import User
 from user.permissions import PermissionAdmin, permission_admin
+from utils.common_utils import is_update_method
 
 
 class ActivityFilter(FilterSet):
@@ -43,7 +45,7 @@ class ActivityFilter(FilterSet):
 class ActivityViewSet(ReadOnlyModelViewSet):
     queryset = Activity.objects.all()
     permission_classes = (IsAuthenticated,)
-    serializer_class = ActivitySerializer
+    serializer_class = ActivityReadSerializer
     filter_backends = (DjangoFilterBackend, filters.SearchFilter)
     filter_class = ActivityFilter
     search_fields = (
@@ -70,7 +72,7 @@ class ActivityViewSet(ReadOnlyModelViewSet):
             record.status = True
             record.sign_time = timezone.now()
             record.save()
-            return Response({"message": "签到成功"})
+            return Response({"message": "签到成功"}, status=200)
 
         except Activity.DoesNotExist:
             return Response({"message": "签到码无效或已过期"}, status=400)
@@ -101,12 +103,21 @@ class ActivityViewSet(ReadOnlyModelViewSet):
 class ActivityManageViewSet(ModelViewSet):
     queryset = Activity.objects.all()
     permission_classes = (IsAuthenticated, PermissionAdmin,)
-    serializer_class = ActivitySerializer
+    serializer_class = ActivityReadSerializer
     filter_backends = (DjangoFilterBackend, filters.SearchFilter)
     filter_class = ActivityFilter
     search_fields = (
         "name", "description", "location", "creator__name"
     )
+
+    def create(self, request, *args, **kwargs):
+        request.data["creator"] = request.user.id
+        return super().create(request, *args, **kwargs)
+
+    def get_serializer_class(self):
+        if is_update_method(self.request):
+            return ActivityUpdateSerializer
+        return self.serializer_class
 
     @action(methods=["get"], detail=True, url_path="generate_code")
     def generate_code(self, request, *args, **kwargs):
@@ -120,3 +131,29 @@ class ActivityManageViewSet(ModelViewSet):
         activity.save(update_fields=("sign_info",))
 
         return Response({**info, "name": activity.name, "id": activity.id})
+
+    @action(methods=["get"], detail=True, url_path="export", serializer_class=AttenderSerializer)
+    def export(self, request, pk):
+        activity = self.get_object()
+        queryset = activity.attender_set.all()
+        page = self.paginate_queryset(queryset)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
+
+    @action(methods=['post', 'delete'], detail=True, url_path="attender")
+    def attender(self, request, pk):
+        activity = self.get_object()
+        user = request.data.get("user", None)
+        if not user:
+            return Response({"message": "user不能为空"}, status=400)
+        user = list(User.objects.filter(username__in=user, isAdmin=False).values_list("id", flat=True))
+        if request.method == 'POST':
+            Attender.objects.filter(activity=activity, user_id__in=user).delete()
+            count = Attender.objects.bulk_create(
+                [Attender(activity=activity, user_id=user, status=True) for user in user]
+            )
+            return Response({"count": count}, status=201)
+        elif request.method == 'DELETE':
+            count = Attender.objects.filter(activity=activity, user_id__in=user).delete()
+            return Response({"count": count}, status=204)
+        return Response(status=405)

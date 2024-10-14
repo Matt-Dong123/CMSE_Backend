@@ -66,6 +66,12 @@ class UserRegisterSerializer(serializers.ModelSerializer):
         read_only_fields = ("id",)
 
 
+class UserSimpleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ("id", "username", "name")
+
+
 class UserProfileSerializer(serializers.ModelSerializer):
     group = GroupSerializer()
 
