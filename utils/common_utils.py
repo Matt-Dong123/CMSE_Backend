@@ -104,14 +104,8 @@ def get_file_md5(file: File) -> str:
     return md5.hexdigest()
 
 
-@lru_cache
 def get_digest_token(token):
-    return hashlib.sha256(token.encode("utf-8")).hexdigest()
-
-
-def get_dict_digest(d: dict):
-    """dict hash"""
-    return hashlib.md5(str(d).encode("utf-8")).hexdigest()
+    return hashlib.sha256(str(token).encode("utf-8")).hexdigest()
 
 
 def action_route_helper(action: str, action_map: dict, default=None):

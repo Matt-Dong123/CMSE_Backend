@@ -12,10 +12,12 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ReadOnlyModelViewSet, ModelViewSet
 
 from activity.models import Activity, Attender
-from activity.serializers import ActivityReadSerializer, ActivityUpdateSerializer, AttenderSerializer
+from activity.serializers import ActivityReadSerializer, ActivityUpdateSerializer, AttenderSerializer, \
+    ActivityCreateSerializer
+from sysoptions.views import logger
 from user.models import User
 from user.permissions import PermissionAdmin, permission_admin
-from utils.common_utils import is_update, is_write_method
+from utils.common_utils import is_update_method, is_post_method
 
 
 class ActivityFilter(FilterSet):
@@ -112,10 +114,13 @@ class ActivityManageViewSet(ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         request.data["creator"] = request.user.id
+        logger.warning(f"User {request.user} create activity {str(request.data)}")
         return super().create(request, *args, **kwargs)
 
     def get_serializer_class(self):
-        if is_write_method(self.request):
+        if is_post_method(self.request):
+            return ActivityCreateSerializer
+        elif is_update_method(self.request):
             return ActivityUpdateSerializer
         return self.serializer_class
 

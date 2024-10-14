@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
 from activity.models import Activity, Attender
+from user.models import User
 from user.serializers import UserSimpleSerializer
 
 
@@ -24,13 +25,13 @@ class ActivityReadSerializer(serializers.ModelSerializer):
         )
 
 
-class ActivityUpdateSerializer(serializers.ModelSerializer):
-    creator = serializers.PrimaryKeyRelatedField(read_only=True)
+class ActivityCreateSerializer(serializers.ModelSerializer):
+    creator = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
 
     def validate(self, data):
         if data["start_time"] > data["end_time"]:
             raise serializers.ValidationError("开始时间不能大于结束时间")
-        return super().validate(data)
+        return data
 
     class Meta:
         model = Activity
@@ -43,6 +44,25 @@ class ActivityUpdateSerializer(serializers.ModelSerializer):
             "capacity",
             "type",
             "creator",
+        )
+
+
+class ActivityUpdateSerializer(serializers.ModelSerializer):
+    def validate(self, data):
+        if data["start_time"] > data["end_time"]:
+            raise serializers.ValidationError("开始时间不能大于结束时间")
+        return data
+
+    class Meta:
+        model = Activity
+        fields = (
+            "name",
+            "description",
+            "start_time",
+            "end_time",
+            "location",
+            "capacity",
+            "type",
         )
 
 
