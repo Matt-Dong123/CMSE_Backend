@@ -1,11 +1,13 @@
 from rest_framework import serializers
 
 from activity.models import Activity, Attender
+from user.models import User
 from user.serializers import UserSimpleSerializer
 
 
 class ActivityMixinSerializer(serializers.ModelSerializer):
-
+    creator = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
+    
     def validate(self, data):
         if data["start_time"] > data["end_time"]:
             raise serializers.ValidationError("开始时间不能大于结束时间")
