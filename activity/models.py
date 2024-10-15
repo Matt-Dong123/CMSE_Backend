@@ -3,7 +3,6 @@ from django.db.models import IntegerChoices
 from django.utils import timezone
 
 from user.models import User
-from utils.common_utils import to_django_time
 
 
 # Create your models here.
@@ -14,10 +13,6 @@ class ActivityType(IntegerChoices):
     ART = 1
     SCIENCE = 2
     OTHER = 3
-
-
-def default_sign_info():
-    return dict(code="", valid_until=to_django_time(timezone.now()))
 
 
 class Attender(models.Model):
@@ -52,9 +47,9 @@ class Activity(models.Model):
     location = models.CharField("地点", max_length=50)
     capacity = models.PositiveIntegerField("最大报名容量")
     type = models.IntegerField("活动类别", choices=ActivityType.choices)
-    # sign_code = models.CharField("签到码", max_length=50, null=True)
-    # code_expired_time = models.DateTimeField("签到码过期时间", null=True)
-    sign_info = models.JSONField("签到信息", default=default_sign_info)
+    sign_code = models.CharField("签到码", max_length=50, null=True)
+    code_expired_time = models.DateTimeField("签到码过期时间", null=True)
+    # sign_info = models.JSONField("签到信息", default=default_sign_info)
     users = models.ManyToManyField(
         User, through=Attender, related_name="activity_attenders_set", verbose_name="参与者"
     )

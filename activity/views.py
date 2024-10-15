@@ -62,9 +62,11 @@ class ActivityViewSet(ReadOnlyModelViewSet):
 
         user = request.user
         code = self.request.query_params.get("code")
+        # if not code:
+        #     return Response({"message": "缺少签到码"}, status=400)
         try:
             activity = Activity.objects.get(
-                sign_info__code=code, sign_info__valid_until__gte=timezone.now()
+                sign_code=code, code_expired_time__gte=timezone.now()
             )
             record = Attender.objects.get(activity=activity, user=user)
 
@@ -138,8 +140,9 @@ class ActivityManageViewSet(ModelViewSet):
             "code": hashlib.md5(str(uuid1()).encode()).hexdigest(),
             "valid_until": to_django_time(timezone.now() + timezone.timedelta(seconds=ttl + 1)),
         }
-        activity.sign_info = info
-        activity.save(update_fields=("sign_info",))
+        activity.sign_code = info["code"]
+        activity.code_expired_time = info["valid_until"]
+        activity.save(update_fields=("sign_code", "code_expired_time"))
 
         return Response({**info, "name": activity.name, "id": activity.id})
 

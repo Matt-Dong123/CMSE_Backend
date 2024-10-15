@@ -28,7 +28,7 @@ class Migration(migrations.Migration):
                 ('location', models.CharField(max_length=50, verbose_name='地点')),
                 ('capacity', models.PositiveIntegerField(verbose_name='最大报名容量')),
                 ('type', models.IntegerField(choices=[(0, 'Sports'), (1, 'Art'), (2, 'Science'), (3, 'Other')], verbose_name='活动类别')),
-                ('sign_info', models.JSONField(default=activity.models.default_sign_info, verbose_name='签到信息')),
+                ('sign_info', models.JSONField(verbose_name='签到信息')),
                 ('creator', models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, to=settings.AUTH_USER_MODEL, verbose_name='创建者')),
             ],
             options={
