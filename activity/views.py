@@ -128,6 +128,12 @@ class ActivityManageViewSet(ModelViewSet):
     def generate_code(self, request, *args, **kwargs):
         activity = self.get_object()
         ttl = request.query_params.get("ttl", 15)
+        try:
+            ttl = int(ttl)
+            if ttl <= 0:
+                raise ValueError
+        except ValueError:
+            return Response({"message": "ttl需要为一个正整数"}, status=400)
         info = {
             "code": hashlib.md5(str(uuid1()).encode()).hexdigest(),
             "valid_until": to_django_time(timezone.now() + timezone.timedelta(seconds=ttl + 1)),
