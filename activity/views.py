@@ -54,6 +54,12 @@ class ActivityViewSet(ReadOnlyModelViewSet):
         "name", "description", "location", "creator__name"
     )
 
+    def get_queryset(self):
+        user = self.request.user
+        if self.request.query_params.get("mine", False):
+            return self.queryset.filter(users=user)
+        return self.queryset
+
     @action(methods=["get"], detail=False, url_path="signin")
     def signin(self, request, *args, **kwargs):
 
@@ -62,8 +68,7 @@ class ActivityViewSet(ReadOnlyModelViewSet):
 
         user = request.user
         code = self.request.query_params.get("code")
-        # if not code:
-        #     return Response({"message": "缺少签到码"}, status=400)
+
         try:
             activity = Activity.objects.get(
                 sign_code=code, code_expired_time__gte=timezone.now()
