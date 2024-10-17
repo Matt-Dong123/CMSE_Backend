@@ -1,6 +1,7 @@
 import hashlib
 from uuid import uuid1
 
+from django.db.models import Count
 from django.utils import timezone
 from django_filters import CharFilter
 from django_filters import FilterSet, IsoDateTimeFilter
@@ -88,6 +89,11 @@ class ActivityViewSet(ReadOnlyModelViewSet):
         except Attender.DoesNotExist:
             return Response({"message": "用户未报名"}, status=400)
 
+    @action(methods=["get"], detail=False, url_path="count_by_type")
+    def count_by_type(self, request):
+        type_count = Activity.objects.values("type").order_by().annotate(count=Count("type"))
+        return Response(type_count, status=200)
+
     @action(methods=["get"], detail=True, url_path="attend")
     def attend(self, request, *args, **kwargs):
         if permission_admin(request):
@@ -110,7 +116,7 @@ class ActivityViewSet(ReadOnlyModelViewSet):
 
 
 class ActivityManageViewSet(ModelViewSet):
-    queryset = Activity.objects.all()
+    queryset = Activity.objects.prefetch_related("attender_set").all()
     permission_classes = (IsAuthenticated, PermissionAdmin,)
     serializer_class = ActivityReadSerializer
     filter_backends = (DjangoFilterBackend, filters.SearchFilter)
@@ -134,7 +140,7 @@ class ActivityManageViewSet(ModelViewSet):
     @action(methods=["get"], detail=True, url_path="generate_code")
     def generate_code(self, request, *args, **kwargs):
         activity = self.get_object()
-        ttl = request.query_params.get("ttl", 15)
+        ttl = request.query_params.get("ttl", 10)
         try:
             ttl = int(ttl)
             if ttl <= 0:

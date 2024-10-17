@@ -1,4 +1,4 @@
-from rest_framework.permissions import BasePermission
+from rest_framework.permissions import BasePermission, SAFE_METHODS
 from rest_framework.request import Request
 
 
@@ -16,3 +16,7 @@ class PermissionAdmin(BasePermission):
 
     def has_object_permission(self, request, view, obj):
         return permission_admin(request)
+
+class IsAdminOrReadOnly(BasePermission):
+    def has_permission(self, request, view):
+        return permission_admin(request) or request.method in SAFE_METHODS

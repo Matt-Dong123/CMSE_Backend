@@ -113,3 +113,4 @@ data/judge_server/*
 data/log/*
 !data/log/.gitkeep
 data/test_case/*
+/.idea
