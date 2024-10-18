@@ -3,10 +3,9 @@ from uuid import uuid1
 
 from django.db.models import Count
 from django.utils import timezone
-from django_filters import CharFilter
-from django_filters import FilterSet, IsoDateTimeFilter
+from django_filters import CharFilter, FilterSet, IsoDateTimeFilter
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import filters
+from rest_framework import filters, status
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -57,6 +56,8 @@ class ActivityViewSet(ReadOnlyModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
+        if self.request.query_params.get("attend", False):
+            return self.queryset.filter(users=user, attender__status=True).distinct()
         if self.request.query_params.get("mine", False):
             return self.queryset.filter(users=user)
         return self.queryset
@@ -65,7 +66,7 @@ class ActivityViewSet(ReadOnlyModelViewSet):
     def signin(self, request, *args, **kwargs):
 
         if permission_admin(request):
-            return Response({"message": "管理员无需签到"}, status=400)
+            return Response({"message": "管理员无需签到"}, status=status.HTTP_400_BAD_REQUEST)
 
         user = request.user
         code = self.request.query_params.get("code")
@@ -77,39 +78,39 @@ class ActivityViewSet(ReadOnlyModelViewSet):
             record = Attender.objects.get(activity=activity, user=user)
 
             if record.status:
-                return Response({"message": "您已经签到过了"}, status=400)
+                return Response({"message": "您已经签到过了"}, status=status.HTTP_400_BAD_REQUEST)
 
             record.status = True
             record.sign_time = timezone.now()
             record.save()
-            return Response({"message": "签到成功"}, status=200)
+            return Response({"message": "签到成功"}, status=status.HTTP_200_OK)
 
         except Activity.DoesNotExist:
-            return Response({"message": "签到码无效或已过期"}, status=400)
+            return Response({"message": "签到码无效或已过期"}, status=status.HTTP_400_BAD_REQUEST)
         except Attender.DoesNotExist:
-            return Response({"message": "用户未报名"}, status=400)
+            return Response({"message": "用户未报名"}, status=status.HTTP_400_BAD_REQUEST)
 
     @action(methods=["get"], detail=False, url_path="count_by_type")
     def count_by_type(self, request):
-        type_count = Activity.objects.values("type").order_by().annotate(count=Count("type"))
+        type_count = self.queryset.values("type").order_by().annotate(count=Count("type"))
         return Response(type_count, status=200)
 
     @action(methods=["get"], detail=True, url_path="attend")
     def attend(self, request, *args, **kwargs):
         if permission_admin(request):
-            return Response({"message": "管理员无需报名"}, status=400)
+            return Response({"message": "管理员无需报名"}, status=status.HTTP_400_BAD_REQUEST)
 
         user = request.user
         activity = self.get_object()
 
         if activity.is_started:
-            return Response({"message": "活动已开始"}, status=400)
+            return Response({"message": "活动已开始"}, status=status.HTTP_400_BAD_REQUEST)
 
         if activity.attender_set.filter(id=user.id).exists():
-            return Response({"message": "您已经报名过了"}, status=400)
+            return Response({"message": "您已经报名过了"}, status=status.HTTP_400_BAD_REQUEST)
 
         if activity.get_attenders_count >= activity.capacity:
-            return Response({"message": "报名人数已满"}, status=400)
+            return Response({"message": "报名人数已满"}, status=status.HTTP_400_BAD_REQUEST)
 
         Attender.objects.create(activity=activity, user=user)
         return Response({"message": "报名成功"})
@@ -146,7 +147,7 @@ class ActivityManageViewSet(ModelViewSet):
             if ttl <= 0:
                 raise ValueError
         except ValueError:
-            return Response({"message": "ttl需要为一个正整数"}, status=400)
+            return Response({"message": "ttl需要为一个正整数"}, status=status.HTTP_400_BAD_REQUEST)
         info = {
             "code": hashlib.md5(str(uuid1()).encode()).hexdigest(),
             "valid_until": to_django_time(timezone.now() + timezone.timedelta(seconds=ttl + 1)),
@@ -157,28 +158,35 @@ class ActivityManageViewSet(ModelViewSet):
 
         return Response({**info, "name": activity.name, "id": activity.id})
 
-    @action(methods=["get"], detail=True, url_path="export", serializer_class=AttenderSerializer)
-    def export(self, request, pk):
-        activity = self.get_object()
-        queryset = activity.attender_set.all()
-        page = self.paginate_queryset(queryset)
-        serializer = self.get_serializer(page, many=True)
-        return self.get_paginated_response(serializer.data)
-
-    @action(methods=['post', 'delete'], detail=True, url_path="attender")
+    @action(methods=['post', 'delete', 'get'], detail=True, url_path="attender")
     def attender(self, request, pk):
         activity = self.get_object()
-        user = request.data.get("user", None)
-        if not user:
-            return Response({"message": "user不能为空"}, status=400)
-        user = list(User.objects.filter(username__in=user, isAdmin=False).values_list("id", flat=True))
-        if request.method == 'POST':
-            Attender.objects.filter(activity=activity, user_id__in=user).delete()
+        if request.method == 'POST' or request.method == 'DELETE':
+            # 添加或删除报名者, 都要先获取用户的id列表
+            user = request.data.get("user", None)
+            if not user:
+                return Response({"message": "user不能为空"}, status=status.HTTP_400_BAD_REQUEST)
+            if isinstance(user, str):
+                user = [user]
+            if not isinstance(user, list):
+                return Response({"message": "user需要为一个用户名列表"}, status=status.HTTP_400_BAD_REQUEST)
+            users = list(User.objects.filter(username__in=user, isAdmin=False).values_list("id", flat=True))
+            count = Attender.objects.filter(activity=activity, user_id__in=users).delete()
+
+            # 删除操作直接返回
+            if request.method == 'DELETE':
+                return Response({"count": count}, status=status.HTTP_204_NO_CONTENT)
+
+            # 添加操作, 通过bulk_create批量添加
             count = Attender.objects.bulk_create(
-                [Attender(activity=activity, user_id=user, status=True) for user in user]
+                [Attender(activity=activity, user_id=user, status=True) for user in users]
             )
-            return Response({"count": count}, status=201)
-        elif request.method == 'DELETE':
-            count = Attender.objects.filter(activity=activity, user_id__in=user).delete()
-            return Response({"count": count}, status=204)
-        return Response(status=405)
+            return Response({"count": count}, status=status.HTTP_201_CREATED)
+
+        elif request.method == 'GET':
+            queryset = activity.attender_set.all()
+            page = self.paginate_queryset(queryset)
+            serializer = AttenderSerializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
