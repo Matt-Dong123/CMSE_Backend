@@ -92,7 +92,7 @@ class ActivityViewSet(ReadOnlyModelViewSet):
 
     @action(methods=["get"], detail=False, url_path="count_by_type")
     def count_by_type(self, request):
-        type_count = self.queryset.values("type").order_by().annotate(count=Count("type"))
+        type_count = self.get_queryset().values("type").order_by().annotate(count=Count("type"))
         return Response(type_count, status=200)
 
     @action(methods=["get"], detail=True, url_path="attend")
