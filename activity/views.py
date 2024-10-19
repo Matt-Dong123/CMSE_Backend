@@ -106,7 +106,7 @@ class ActivityViewSet(ReadOnlyModelViewSet):
         if activity.is_started:
             return Response({"message": "活动已开始"}, status=status.HTTP_400_BAD_REQUEST)
 
-        if activity.attender_set.filter(id=user.id).exists():
+        if activity.attender_set.filter(user=user).exists():
             return Response({"message": "您已经报名过了"}, status=status.HTTP_400_BAD_REQUEST)
 
         if activity.get_attenders_count >= activity.capacity:
