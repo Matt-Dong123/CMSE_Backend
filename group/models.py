@@ -6,7 +6,7 @@ from django.db.models import UniqueConstraint
 
 class Grade(models.Model):
     """年级"""
-    name = models.CharField("年级", max_length=50, unique=True)
+    name = models.CharField("年级名", max_length=50, unique=True)
 
     def __str__(self):
         return f"Grade: {self.name}"
@@ -19,8 +19,8 @@ class Grade(models.Model):
 
 class Group(models.Model):
     """班级"""
-    name = models.CharField("班级", max_length=50)
-    grade = models.ForeignKey(Grade, on_delete=models.CASCADE, related_name="groups")
+    name = models.CharField("班级名", max_length=50)
+    grade = models.ForeignKey(Grade, on_delete=models.CASCADE, related_name="groups", verbose_name="对应年级")
 
     def __str__(self):
         return f"Group: {self.name}"

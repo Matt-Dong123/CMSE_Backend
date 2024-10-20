@@ -18,8 +18,14 @@ class GroupSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
+class GroupSimpleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Group
+        fields = ("id", "name")
+
+
 class GradeSerializer(BulkSerializerMixin, serializers.ModelSerializer):
-    groups = GroupSerializer(many=True, read_only=True)
+    groups = GroupSimpleSerializer(many=True, read_only=True)
 
     class Meta:
         model = Grade
