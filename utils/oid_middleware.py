@@ -1,8 +1,8 @@
-from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AnonymousUser
 from django.utils.deprecation import MiddlewareMixin
 
 from user.models import User
+
 
 class WXOpenIDAuthenticationMiddleware(MiddlewareMixin):
     def process_request(self, request):
