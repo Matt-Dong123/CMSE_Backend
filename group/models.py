@@ -1,6 +1,7 @@
 from django.db import models
 from django.db.models import UniqueConstraint
 
+
 # Create your models here.
 
 class Grade(models.Model):
@@ -19,7 +20,7 @@ class Grade(models.Model):
 class Group(models.Model):
     """班级"""
     name = models.CharField("班级", max_length=50)
-    grade = models.ForeignKey(Grade, on_delete=models.CASCADE)
+    grade = models.ForeignKey(Grade, on_delete=models.CASCADE, related_name="groups")
 
     def __str__(self):
         return f"Group: {self.name}"

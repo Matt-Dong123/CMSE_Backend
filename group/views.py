@@ -4,7 +4,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework_bulk import BulkModelViewSet
 
 from group.models import Grade, Group
-from group.serializers import GradeSerializer, GroupSerializer, GroupUpdateSerializer, GroupManageListSerializer
+from group.serializers import GradeSerializer, GroupSerializer, GroupUpdateSerializer
 from user.permissions import PermissionAdmin
 from utils.common_utils import is_update
 
@@ -31,6 +31,4 @@ class GroupManageViewSet(BulkModelViewSet):
     def get_serializer_class(self):
         if is_update(self.action):
             return GroupUpdateSerializer
-        elif self.action == "list":
-            return GroupManageListSerializer
         return GroupSerializer
