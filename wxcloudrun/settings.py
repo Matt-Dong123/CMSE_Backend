@@ -140,7 +140,6 @@ if DEBUG:
     debug_app = [
         "debug_toolbar",
         "drf_yasg",
-        "utils.rest_framework_bulk.tests.simple_app",
     ]
     INSTALLED_APPS.extend(debug_app)
     MIDDLEWARE.insert(0, "debug_toolbar.middleware.DebugToolbarMiddleware")

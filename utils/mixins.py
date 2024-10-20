@@ -5,7 +5,7 @@ from django.db.models import QuerySet
 from rest_framework import status
 from rest_framework.response import Response
 
-from utils.rest_framework_bulk import BulkUpdateModelMixin
+from rest_framework_bulk import BulkUpdateModelMixin
 
 """
 Mixin集合
