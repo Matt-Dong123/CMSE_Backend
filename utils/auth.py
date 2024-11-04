@@ -12,5 +12,6 @@ class WXOpenIDAuthentication(BaseAuthentication):
         try:
             user = User.objects.get(openid=openid)
         except User.DoesNotExist:
-            raise AuthenticationFailed("未注册用户")
+            return None
+            # raise AuthenticationFailed("未注册用户")
         return user, None
