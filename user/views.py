@@ -30,9 +30,14 @@ class RegisterManageViewSet(ModelViewSet):
             return RegisterUpdateSerializer
         return RegisterSerializer
 
-
     @action(methods=["post"], detail=False, url_path="batch-register")
     def batch_register(self, request):
+        """
+        用户信息批量导入注册
+        : param username: 学号列表
+        : param name: 姓名列表
+        : param group: Group ID列表
+        """
         try:
             usernames = self.request.data["username"]
             names = self.request.data["name"]
@@ -87,6 +92,12 @@ class UserViewSet(GenericViewSet):
         permission_classes=(AllowAny,),
     )
     def register(self, request, *args, **kwargs):
+        """
+        用户注册
+        : param username: 学号
+        : param name: 姓名
+        : param phone: 手机号
+        """
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         username = serializer.validated_data["username"]

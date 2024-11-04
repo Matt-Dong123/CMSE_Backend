@@ -1,7 +1,7 @@
 import hashlib
 from uuid import uuid1
 
-from django.db.models import Count
+from django.db.models import Count, Q
 from django.utils import timezone
 from django_filters import CharFilter, FilterSet, IsoDateTimeFilter
 from django_filters.rest_framework import DjangoFilterBackend
@@ -23,7 +23,7 @@ from utils.common_utils import is_update_method, is_post_method, to_django_time
 class ActivityFilter(FilterSet):
     start_time = IsoDateTimeFilter(field_name="start_time", lookup_expr="gte")
     end_time = IsoDateTimeFilter(field_name="end_time", lookup_expr="lte")
-    status = CharFilter(method='filter_status')
+    status = CharFilter(method='filter_status', help_text="attend: 已经报名的活动, signed: 已签到的活动")
 
     class Meta:
         model = Activity
@@ -34,12 +34,10 @@ class ActivityFilter(FilterSet):
         }
 
     def filter_status(self, queryset, name, value):
-        if value == 'ended':
-            return queryset.filter(end_time__lte=timezone.now())
-        elif value == 'waiting':
-            return queryset.filter(start_time__gte=timezone.now())
-        elif value == 'running':
-            return queryset.filter(start_time__lte=timezone.now(), end_time__gte=timezone.now())
+        if value == 'attend':
+            return queryset.filter(users=self.request.user)
+        elif value == 'signed':
+            return queryset.filter(users=self.request.user, attender__status=True)
         else:
             return queryset
 
@@ -55,16 +53,18 @@ class ActivityViewSet(ReadOnlyModelViewSet):
     )
 
     def get_queryset(self):
+        # 管理员可以查看所有活动, 普通用户只能查看自己参与的活动或者未结束的活动
         user = self.request.user
-        if self.request.query_params.get("attend", False):
-            return self.queryset.filter(users=user, attender__status=True).distinct()
-        if self.request.query_params.get("mine", False):
-            return self.queryset.filter(users=user)
-        return self.queryset
+        if permission_admin(self.request):
+            return self.queryset.all()
+        return self.queryset.filter(Q(users=user) | Q(end_time__gte=timezone.now())).distinct()
 
     @action(methods=["get"], detail=False, url_path="signin")
     def signin(self, request, *args, **kwargs):
-
+        """
+        学生签到
+        : param code: 签到码
+        """
         if permission_admin(request):
             return Response({"message": "管理员无需签到"}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -92,11 +92,13 @@ class ActivityViewSet(ReadOnlyModelViewSet):
 
     @action(methods=["get"], detail=False, url_path="count_by_type")
     def count_by_type(self, request):
-        type_count = self.get_queryset().values("type").order_by().annotate(count=Count("type"))
+        """按照类型统计活动数量"""
+        type_count = Activity.objects.values("type").order_by().annotate(count=Count("type"))
         return Response(type_count, status=200)
 
     @action(methods=["get"], detail=True, url_path="attend")
     def attend(self, request, *args, **kwargs):
+        """参加活动"""
         if permission_admin(request):
             return Response({"message": "管理员无需报名"}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -140,6 +142,10 @@ class ActivityManageViewSet(ModelViewSet):
 
     @action(methods=["get"], detail=True, url_path="generate_code")
     def generate_code(self, request, *args, **kwargs):
+        """
+        管理员生成签到码, 每次生成都会覆盖之前的签到码
+        : param ttl: 有效时间, 单位秒, 默认10秒
+        """
         activity = self.get_object()
         ttl = request.query_params.get("ttl", 10)
         try:
@@ -160,6 +166,15 @@ class ActivityManageViewSet(ModelViewSet):
 
     @action(methods=['post', 'delete', 'get'], detail=True, url_path="attender")
     def attender(self, request, pk):
+        """
+        参与活动的用户管理
+        如果是POST请求, 则添加用户到活动中
+        如果是DELETE请求, 则从活动中删除用户
+        如果是GET请求, 则返回活动的参与者
+
+
+
+        """
         activity = self.get_object()
         if request.method == 'POST' or request.method == 'DELETE':
             # 添加或删除报名者, 都要先获取用户的id列表
