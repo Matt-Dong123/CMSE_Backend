@@ -122,6 +122,25 @@ class ActivityViewSet(ReadOnlyModelViewSet):
         Attender.objects.create(activity=activity, user=user)
         return Response({"message": "报名成功"})
 
+    @action(methods=["get"], detail=True, url_path="quit")
+    def quit(self, request, *args, **kwargs):
+        """退出活动"""
+        if permission_admin(request):
+            return Response({"message": "管理员无需退出"}, status=status.HTTP_400_BAD_REQUEST)
+
+        user = request.user
+        activity = self.get_object()
+
+        if activity.is_started:
+            return Response({"message": "活动已开始"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            record = Attender.objects.get(activity=activity, user=user)
+            record.delete()
+            return Response({"message": "退出成功"})
+        except Attender.DoesNotExist:
+            return Response({"message": "您未报名"}, status=status.HTTP_400_BAD_REQUEST)
+
 
 class ActivityManageViewSet(ModelViewSet):
     queryset = Activity.objects.prefetch_related("attender_set").all()
