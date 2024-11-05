@@ -39,7 +39,7 @@ class ActivityFilter(FilterSet):
         elif value == 'signed':
             return queryset.filter(users=self.request.user, attender__status=True)
         else:
-            return queryset
+            return queryset.filter(end_time__gte=timezone.now())
 
 
 class ActivityViewSet(ReadOnlyModelViewSet):
