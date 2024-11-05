@@ -8,6 +8,7 @@ from user.serializers import UserSimpleSerializer
 class ActivityReadSerializer(serializers.ModelSerializer):
     creator = UserSimpleSerializer()
     get_attenders_count = serializers.IntegerField()
+
     class Meta:
         model = Activity
         fields = (
@@ -23,12 +24,14 @@ class ActivityReadSerializer(serializers.ModelSerializer):
             "get_attenders_count",
         )
 
+
 class ActivityReadDetailSerializer(serializers.ModelSerializer):
     creator = UserSimpleSerializer()
     get_attenders_count = serializers.IntegerField()
     get_signed_attenders_count = serializers.IntegerField()
     is_attend = serializers.SerializerMethodField()
     is_signed = serializers.SerializerMethodField()
+
     class Meta:
         model = Activity
         fields = (
@@ -43,6 +46,8 @@ class ActivityReadDetailSerializer(serializers.ModelSerializer):
             "type",
             "get_attenders_count",
             "get_signed_attenders_count",
+            "is_attend",
+            "is_signed",
         )
 
     def get_is_attend(self, obj):
@@ -52,7 +57,6 @@ class ActivityReadDetailSerializer(serializers.ModelSerializer):
     def get_is_signed(self, obj):
         user = self.context["request"].user
         return user.attender_set.filter(activity=obj, status=True).exists()
-
 
 
 class ActivityCreateSerializer(serializers.ModelSerializer):
