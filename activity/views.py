@@ -13,7 +13,7 @@ from rest_framework.viewsets import ReadOnlyModelViewSet, ModelViewSet
 
 from activity.models import Activity, Attender
 from activity.serializers import ActivityReadSerializer, ActivityUpdateSerializer, AttenderSerializer, \
-    ActivityCreateSerializer
+    ActivityCreateSerializer, ActivityReadDetailSerializer
 from sysoptions.views import logger
 from user.models import User
 from user.permissions import PermissionAdmin, permission_admin
@@ -58,6 +58,11 @@ class ActivityViewSet(ReadOnlyModelViewSet):
         if permission_admin(self.request):
             return self.queryset.all()
         return self.queryset.filter(Q(users=user) | Q(end_time__gte=timezone.now())).distinct()
+
+    def get_serializer_class(self):
+        if self.action == 'retrieve':
+            return ActivityReadDetailSerializer
+        return self.serializer_class
 
     @action(methods=["get"], detail=False, url_path="signin")
     def signin(self, request, *args, **kwargs):

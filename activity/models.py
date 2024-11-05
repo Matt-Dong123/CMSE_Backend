@@ -76,6 +76,8 @@ class Activity(models.Model):
     def get_signed_attenders_count(self):
         return self.attender_set.filter(status=True).count()
 
+
+
     class Meta:
         db_table = "activity"
         ordering = ("-id",)
