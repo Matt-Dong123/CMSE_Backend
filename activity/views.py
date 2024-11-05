@@ -13,9 +13,8 @@ from rest_framework.viewsets import ReadOnlyModelViewSet, ModelViewSet
 
 from activity.models import Activity, Attender
 from activity.serializers import ActivityReadSerializer, ActivityUpdateSerializer, AttenderSerializer, \
-    ActivityCreateSerializer, ActivityReadDetailSerializer
+    ActivityCreateSerializer, ActivityReadDetailSerializer, AttenderCreateSerializer, AttenderUpdateSerializer
 from sysoptions.views import logger
-from user.models import User
 from user.permissions import PermissionAdmin, permission_admin
 from utils.common_utils import is_update_method, is_post_method, to_django_time
 
@@ -188,44 +187,22 @@ class ActivityManageViewSet(ModelViewSet):
 
         return Response({**info, "name": activity.name, "id": activity.id})
 
-    @action(methods=['post', 'delete', 'get'], detail=True, url_path="attender")
-    def attender(self, request, pk):
-        """
-        参与活动的用户管理
-        如果是POST请求, 则添加用户到活动中
-        如果是DELETE请求, 则从活动中删除用户
-        如果是GET请求, 则返回活动的参与者
 
+class ActivityAttendersManageViewSet(ModelViewSet):
+    queryset = Attender.objects.prefetch_related("user").all()
+    permission_classes = (IsAuthenticated, PermissionAdmin,)
+    serializer_class = AttenderSerializer
+    filter_backends = (DjangoFilterBackend, filters.SearchFilter)
+    filterset_fields = {
+        "activity_id": ["exact"],
+    }
+    search_fields = (
+        "user__name", "user__username",
+    )
 
-
-        """
-        activity = self.get_object()
-        if request.method == 'POST' or request.method == 'DELETE':
-            # 添加或删除报名者, 都要先获取用户的id列表
-            user = request.data.get("user", None)
-            if not user:
-                return Response({"message": "user不能为空"}, status=status.HTTP_400_BAD_REQUEST)
-            if isinstance(user, str):
-                user = [user]
-            if not isinstance(user, list):
-                return Response({"message": "user需要为一个用户名列表"}, status=status.HTTP_400_BAD_REQUEST)
-            users = list(User.objects.filter(username__in=user, isAdmin=False).values_list("id", flat=True))
-            count = Attender.objects.filter(activity=activity, user_id__in=users).delete()
-
-            # 删除操作直接返回
-            if request.method == 'DELETE':
-                return Response({"count": count}, status=status.HTTP_204_NO_CONTENT)
-
-            # 添加操作, 通过bulk_create批量添加
-            count = Attender.objects.bulk_create(
-                [Attender(activity=activity, user_id=user, status=True) for user in users]
-            )
-            return Response({"count": count}, status=status.HTTP_201_CREATED)
-
-        elif request.method == 'GET':
-            queryset = activity.attender_set.all()
-            page = self.paginate_queryset(queryset)
-            serializer = AttenderSerializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
-
-        return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+    def get_serializer_class(self):
+        if is_post_method(self.request):
+            return AttenderCreateSerializer
+        elif is_update_method(self.request):
+            return AttenderUpdateSerializer
+        return self.serializer_class
