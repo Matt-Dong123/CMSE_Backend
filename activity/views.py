@@ -11,7 +11,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ReadOnlyModelViewSet, ModelViewSet
 
-from activity.models import Activity, Attender
+from activity.models import Activity, Attender, ActivityType
 from activity.serializers import ActivityReadSerializer, ActivityUpdateSerializer, AttenderSerializer, \
     ActivityCreateSerializer, ActivityReadDetailSerializer, AttenderCreateSerializer, AttenderUpdateSerializer
 from sysoptions.views import logger
@@ -97,8 +97,29 @@ class ActivityViewSet(ReadOnlyModelViewSet):
     @action(methods=["get"], detail=False, url_path="count_by_type")
     def count_by_type(self, request):
         """按照类型统计活动数量"""
-        type_count = Activity.objects.values("type").order_by().annotate(count=Count("type"))
-        return Response(type_count, status=200)
+        total_counts = Activity.objects.values("type").order_by().annotate(count=Count("type"))
+        total = {activity['type']: activity['count'] for activity in total_counts}
+
+        user = request.user
+        attend_counts = Attender.objects.filter(user=user).values('activity__type').annotate(count=Count('id'))
+        attend = {attend['activity__type']: attend['count'] for attend in attend_counts}
+
+        signed_counts = Attender.objects.filter(user=user, status=True).values('activity__type').annotate(
+            count=Count('id'))
+        signed = {signed['activity__type']: signed['count'] for signed in signed_counts}
+
+        activity_types = ActivityType.choices
+        total_dict = {key: total.get(key, 0) for key, _ in activity_types}
+        attend_dict = {key: attend.get(key, 0) for key, _ in activity_types}
+        signed_dict = {key: signed.get(key, 0) for key, _ in activity_types}
+
+        ret = {
+            "total": total_dict,
+            "attend": attend_dict,
+            "signed": signed_dict
+        }
+
+        return Response(ret, status=200)
 
     @action(methods=["get"], detail=True, url_path="attend")
     def attend(self, request, *args, **kwargs):
