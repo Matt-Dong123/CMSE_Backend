@@ -159,6 +159,6 @@ class UserManageViewSet(mixins.RetrieveModelMixin,
     }
 
     def get_serializer_class(self):
-        if is_update_method(self.action):
+        if is_update_method(self.request):
             return UserProfileManageUpdateSerializer
         return UserProfileSerializer
