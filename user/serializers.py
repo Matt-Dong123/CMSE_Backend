@@ -69,7 +69,7 @@ class UserRegisterSerializer(serializers.ModelSerializer):
 class UserSimpleSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ("id", "username", "name","phone")
+        fields = ("id", "username", "name", "phone")
 
 
 class UserProfileSerializer(serializers.ModelSerializer):
@@ -114,6 +114,33 @@ class UserProfileUpdateSerializer(serializers.ModelSerializer):
             "name",
             "isAdmin",
             "group",
+        )
+
+
+class UserProfileManageUpdateSerializer(serializers.ModelSerializer):
+    group = serializers.PrimaryKeyRelatedField(queryset=Group.objects.all())
+
+    def validate_phone(self, value):
+        if not value.isdigit():
+            raise serializers.ValidationError("手机号格式不正确")
+        if len(value) != 11:
+            raise serializers.ValidationError("手机号长度不正确")
+        return value
+
+    class Meta:
+        model = User
+        fields = (
+            "id",
+            "openid",
+            "username",
+            "name",
+            "phone",
+            "isAdmin",
+            "group",
+        )
+        read_only_fields = (
+            "id",
+            "openid",
         )
 
 

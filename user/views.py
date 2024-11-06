@@ -14,7 +14,7 @@ from group.models import Group
 from user.models import Register, User
 from user.permissions import PermissionAdmin
 from user.serializers import RegisterSerializer, UserRegisterSerializer, UserProfileSerializer, \
-    UserProfileUpdateSerializer, UserManageSerializer, RegisterUpdateSerializer
+    UserProfileUpdateSerializer, UserManageSerializer, RegisterUpdateSerializer, UserProfileManageUpdateSerializer
 from utils.common_utils import is_get_method, is_update_method
 
 
@@ -160,5 +160,5 @@ class UserManageViewSet(mixins.RetrieveModelMixin,
 
     def get_serializer_class(self):
         if is_update_method(self.action):
-            return UserProfileUpdateSerializer
+            return UserProfileManageUpdateSerializer
         return UserProfileSerializer
