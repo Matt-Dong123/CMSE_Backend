@@ -243,7 +243,7 @@ class ActivityAttendersManageViewSet(ModelViewSet):
         activity = serializer.validated_data.get("activity")
         with transaction.atomic():
             Attender.objects.filter(activity=activity, user__in=users).update(status=new_status)  # 更新已有记录
-            unattended_users = User.objects.filter(id__in=uids).exclude(attender_set__activity=activity)
+            unattended_users = User.objects.filter(id__in=uids).exclude(attender__activity=activity)
             Attender.objects.bulk_create(
                 [Attender(activity=activity, user=user, status=new_status) for user in unattended_users]
             )
