@@ -106,6 +106,7 @@ class AttenderSerializer(serializers.ModelSerializer):
     class Meta:
         model = Attender
         fields = (
+            "id",
             "user",
             "sign_time",
             "status",
