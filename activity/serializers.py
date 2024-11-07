@@ -114,7 +114,7 @@ class AttenderSerializer(serializers.ModelSerializer):
 
 
 class AttenderCreateSerializer(serializers.ModelSerializer):
-    user = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
+    username = serializers.SlugRelatedField(slug_field="username", queryset=User.objects.all())
     activity = serializers.PrimaryKeyRelatedField(queryset=Activity.objects.all())
     status = serializers.BooleanField(default=False)
 
@@ -125,7 +125,7 @@ class AttenderCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Attender
         fields = (
-            "user",
+            "username",
             "activity",
             "status"
         )
