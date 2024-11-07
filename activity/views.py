@@ -238,12 +238,13 @@ class ActivityAttendersManageViewSet(ModelViewSet):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         new_status = serializer.validated_data.get("status", False)
-        usernames = serializer.validated_data.get("usernames", [])
+        usernames = serializer.validated_data.get("usernames")
         activity = serializer.validated_data.get("activity")
         with transaction.atomic():
+            print(usernames)
             Attender.objects.filter(activity=activity, user__username__in=usernames).delete()
             users = User.objects.filter(username__in=usernames)
-            Attender.objects.bulk_create(
-                [Attender(activity=activity, user=user, status=new_status, ) for user in users]
+            data = Attender.objects.bulk_create(
+                [Attender(activity=activity, user=user, status=new_status, sign_time=timezone.now()) for user in users]
             )
-        return Response({"message": "添加成功"}, status=status.HTTP_201_CREATED)
+        return Response({"message": "添加成功" + str(data)}, status=status.HTTP_201_CREATED)
