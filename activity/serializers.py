@@ -114,18 +114,15 @@ class AttenderSerializer(serializers.ModelSerializer):
 
 
 class AttenderCreateSerializer(serializers.ModelSerializer):
-    username = serializers.SlugRelatedField(slug_field="username", queryset=User.objects.all())
+    usernames = serializers.SlugRelatedField(slug_field="username", queryset=User.objects.all(), many=True)
     activity = serializers.PrimaryKeyRelatedField(queryset=Activity.objects.all())
     status = serializers.BooleanField(default=False)
 
-    def validate(self, attrs):
-        if Attender.objects.filter(user=attrs["user"], activity=attrs["activity"]).exists():
-            raise serializers.ValidationError("该用户已经报名过了")
 
     class Meta:
         model = Attender
         fields = (
-            "username",
+            "usernames",
             "activity",
             "status"
         )

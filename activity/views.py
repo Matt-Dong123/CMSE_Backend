@@ -1,6 +1,7 @@
 import hashlib
 from uuid import uuid1
 
+from django.db import transaction
 from django.db.models import Count, Q
 from django.utils import timezone
 from django_filters import CharFilter, FilterSet, IsoDateTimeFilter
@@ -15,6 +16,7 @@ from activity.models import Activity, Attender, ActivityType
 from activity.serializers import ActivityReadSerializer, ActivityUpdateSerializer, AttenderSerializer, \
     ActivityCreateSerializer, ActivityReadDetailSerializer, AttenderCreateSerializer, AttenderUpdateSerializer
 from sysoptions.views import logger
+from user.models import User
 from user.permissions import PermissionAdmin, permission_admin
 from utils.common_utils import is_update_method, is_post_method, to_django_time
 
@@ -231,3 +233,17 @@ class ActivityAttendersManageViewSet(ModelViewSet):
         elif is_update_method(self.request):
             return AttenderUpdateSerializer
         return self.serializer_class
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        new_status = serializer.validated_data.get("status", False)
+        usernames = serializer.validated_data.get("usernames", [])
+        activity = serializer.validated_data.get("activity")
+        with transaction.atomic():
+            Attender.objects.filter(activity=activity, user__username__in=usernames).delete()
+            users = User.objects.filter(username__in=usernames)
+            Attender.objects.bulk_create(
+                [Attender(activity=activity, user=user, status=new_status, ) for user in users]
+            )
+        return Response({"message": "添加成功"}, status=status.HTTP_201_CREATED)
