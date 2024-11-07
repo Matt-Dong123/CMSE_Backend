@@ -156,6 +156,8 @@ class UserManageViewSet(mixins.RetrieveModelMixin,
         "username": ["exact", "in"],
         "isAdmin": ["exact"],
         "id": ["gte", "lte", "exact", "gt", "lt", "in"],
+        "group_id": ["exact", "in"],
+        "group__grade_id": ["exact", "in"],
     }
 
     def get_serializer_class(self):
