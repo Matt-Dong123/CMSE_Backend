@@ -239,10 +239,12 @@ class ActivityAttendersManageViewSet(ModelViewSet):
         serializer.is_valid(raise_exception=True)
         new_status = serializer.validated_data.get("status", False)
         users = serializer.validated_data.get("usernames")
+        uids = [user.id for user in users]
         activity = serializer.validated_data.get("activity")
         with transaction.atomic():
-            Attender.objects.filter(activity=activity, user__in=users).delete()
+            Attender.objects.filter(activity=activity, user__in=users).update(status=new_status)  # 更新已有记录
+            unattended_users = User.objects.filter(id__in=uids).exclude(attender_set__activity=activity)
             Attender.objects.bulk_create(
-                [Attender(activity=activity, user=user, status=new_status) for user in users]
+                [Attender(activity=activity, user=user, status=new_status) for user in unattended_users]
             )
         return Response({"message": "添加成功"}, status=status.HTTP_201_CREATED)
