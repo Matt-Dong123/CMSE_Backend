@@ -23,7 +23,7 @@ class RegisterManageViewSet(ModelViewSet):
     serializer_class = RegisterSerializer
     permission_classes = (IsAuthenticated, PermissionAdmin)
     filter_backends = (DjangoFilterBackend, filters.SearchFilter)
-    search_fields = ("name", "username", "group__name","group__grade__name")
+    search_fields = ("name", "username", "group__name", "group__grade__name")
     filterset_fields = {
         "username": ["exact", "in"],
         "name": ["exact", "in"],
@@ -157,7 +157,7 @@ class UserManageViewSet(mixins.RetrieveModelMixin,
         filters.SearchFilter,
         filters.OrderingFilter,
     )
-    search_fields = ("username", "name", "phone", "group__name","group__grade__name")
+    search_fields = ("username", "name", "phone", "group__name", "group__grade__name")
     filterset_fields = {
         "username": ["exact", "in"],
         "isAdmin": ["exact"],

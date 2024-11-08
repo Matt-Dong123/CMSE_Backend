@@ -6,7 +6,7 @@ from group.serializers import GroupSerializer
 from user.models import Register, User
 
 
-class RegisterMixinSerializer(serializers.ModelSerializer):
+class RegisterUpdateSerializer(serializers.ModelSerializer):
     group = serializers.PrimaryKeyRelatedField(queryset=Group.objects.all())
     name = serializers.CharField(min_length=2, max_length=20)
     username = serializers.CharField(
@@ -23,15 +23,12 @@ class RegisterMixinSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Register
-        fields = "__all__"
+        fields = (
+            "username",
+            "name",
+            "group"
+        )
 
-
-class RegisterUpdateSerializer(RegisterMixinSerializer):
-    group = serializers.PrimaryKeyRelatedField(queryset=Group.objects.all())
-
-    class Meta:
-        model = Register
-        fields = "__all__"
 
 
 class RegisterSerializer(serializers.ModelSerializer):
