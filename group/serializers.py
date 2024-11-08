@@ -36,6 +36,11 @@ class GradeSerializer(BulkSerializerMixin, serializers.ModelSerializer):
         )
         list_serializer_class = BulkListSerializer
 
+    def validate_name(self, value):
+        if Grade.objects.filter(name=value).exists():
+            raise serializers.ValidationError("该年级已经存在")
+        return value
+
 
 class GroupUpdateSerializer(BulkSerializerMixin, serializers.ModelSerializer):
     grade = serializers.PrimaryKeyRelatedField(queryset=Grade.objects.all())
@@ -44,3 +49,8 @@ class GroupUpdateSerializer(BulkSerializerMixin, serializers.ModelSerializer):
         model = Group
         fields = "__all__"
         list_serializer_class = BulkListSerializer
+
+    def validate(self, attrs):
+        if Group.objects.filter(name=attrs["name"], grade=attrs["grade"]).exists():
+            raise serializers.ValidationError("该班级已经存在")
+        return attrs
