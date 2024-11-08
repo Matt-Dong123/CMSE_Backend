@@ -106,6 +106,10 @@ class ActivityViewSet(ReadOnlyModelViewSet):
         total_counts = Activity.objects.values("type").order_by().annotate(count=Count("type"))
         total = {activity['type']: activity['count'] for activity in total_counts}
 
+        running_counts = Activity.objects.filter(
+            end_time__gte=timezone.now()).values("type").order_by().annotate(count=Count("type"))
+        running = {activity['type']: activity['count'] for activity in running_counts}
+
         user = request.user
         attend_counts = Attender.objects.filter(user=user).values('activity__type').annotate(count=Count('id'))
         attend = {attend['activity__type']: attend['count'] for attend in attend_counts}
@@ -118,11 +122,13 @@ class ActivityViewSet(ReadOnlyModelViewSet):
         total_dict = {key: total.get(key, 0) for key, _ in activity_types}
         attend_dict = {key: attend.get(key, 0) for key, _ in activity_types}
         signed_dict = {key: signed.get(key, 0) for key, _ in activity_types}
+        running_dict = {key: running.get(key, 0) for key, _ in activity_types}
 
         ret = {
             "total": total_dict,
             "attend": attend_dict,
-            "signed": signed_dict
+            "signed": signed_dict,
+            "running": running_dict,
         }
 
         return Response(ret, status=200)
