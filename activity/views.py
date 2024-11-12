@@ -209,10 +209,10 @@ class ActivityManageViewSet(ModelViewSet):
         ttl = request.query_params.get("ttl", 10)
         try:
             ttl = int(ttl)
-            if ttl <= 0:
+            if not 5 <= ttl <= 30:
                 raise ValueError
         except ValueError:
-            return Response({"message": "ttl需要为一个正整数"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"message": "ttl需要为一个5~30之间的正整数"}, status=status.HTTP_400_BAD_REQUEST)
         info = {
             "code": hashlib.md5(str(uuid1()).encode()).hexdigest(),
             "valid_until": to_django_time(timezone.now() + timezone.timedelta(seconds=ttl + 1)),
