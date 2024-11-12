@@ -86,19 +86,22 @@ class ActivityViewSet(ReadOnlyModelViewSet):
                 sign_code=code, code_expired_time__gte=timezone.now()
             )
             record = Attender.objects.get(activity=activity, user=user)
-
+            ret = {
+                "name": activity.name,
+                "id": activity.id,
+            }
             if record.status:
                 return Response({"message": "您已经签到过了"}, status=status.HTTP_400_BAD_REQUEST)
 
             record.status = True
             record.sign_time = timezone.now()
             record.save()
-            return Response({"message": "签到成功"}, status=status.HTTP_200_OK)
+            return Response({"message": "签到成功", **ret}, status=status.HTTP_200_OK)
 
         except Activity.DoesNotExist:
             return Response({"message": "签到码无效或已过期"}, status=status.HTTP_400_BAD_REQUEST)
         except Attender.DoesNotExist:
-            return Response({"message": "用户未报名"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"message": "用户未报名当前活动"}, status=status.HTTP_400_BAD_REQUEST)
 
     @action(methods=["get"], detail=False, url_path="count_by_type")
     def count_by_type(self, request):
