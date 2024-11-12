@@ -216,6 +216,7 @@ class ActivityManageViewSet(ModelViewSet):
         info = {
             "code": hashlib.md5(str(uuid1()).encode()).hexdigest(),
             "valid_until": to_django_time(timezone.now() + timezone.timedelta(seconds=ttl + 1)),
+            "ttl": ttl,
         }
         activity.sign_code = info["code"]
         activity.code_expired_time = info["valid_until"]
