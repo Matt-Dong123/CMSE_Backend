@@ -8,6 +8,7 @@ from django_filters import CharFilter, FilterSet, IsoDateTimeFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, status
 from rest_framework.decorators import action
+from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ReadOnlyModelViewSet, ModelViewSet
@@ -76,7 +77,7 @@ class ActivityViewSet(ReadOnlyModelViewSet):
         : param code: 签到码
         """
         if permission_admin(request):
-            return Response({"message": "管理员无需签到"}, status=status.HTTP_400_BAD_REQUEST)
+            raise ValidationError("管理员无需签到")
 
         user = request.user
         code = self.request.query_params.get("code")
@@ -91,7 +92,7 @@ class ActivityViewSet(ReadOnlyModelViewSet):
                 "id": activity.id,
             }
             if record.status:
-                return Response({"message": "您已经签到过了"}, status=status.HTTP_400_BAD_REQUEST)
+                raise ValidationError("您已经签到过了")
 
             record.status = True
             record.sign_time = timezone.now()
@@ -99,9 +100,9 @@ class ActivityViewSet(ReadOnlyModelViewSet):
             return Response({"message": "签到成功", **ret}, status=status.HTTP_200_OK)
 
         except Activity.DoesNotExist:
-            return Response({"message": "签到码无效或已过期"}, status=status.HTTP_400_BAD_REQUEST)
+            raise ValidationError("签到码无效或已过期")
         except Attender.DoesNotExist:
-            return Response({"message": "用户未报名当前活动"}, status=status.HTTP_400_BAD_REQUEST)
+            raise ValidationError("用户未报名当前活动")
 
     @action(methods=["get"], detail=False, url_path="count_by_type")
     def count_by_type(self, request):
@@ -140,19 +141,19 @@ class ActivityViewSet(ReadOnlyModelViewSet):
     def attend(self, request, *args, **kwargs):
         """参加活动"""
         if permission_admin(request):
-            return Response({"message": "管理员无需报名"}, status=status.HTTP_400_BAD_REQUEST)
+            raise ValidationError("管理员无需报名")
 
         user = request.user
         activity = self.get_object()
 
         if activity.is_started:
-            return Response({"message": "活动已开始"}, status=status.HTTP_400_BAD_REQUEST)
+            raise ValidationError("活动已开始")
 
         if activity.attender_set.filter(user=user).exists():
-            return Response({"message": "您已经报名过了"}, status=status.HTTP_400_BAD_REQUEST)
+            raise ValidationError("您已经报名过了")
 
         if activity.get_attenders_count >= activity.capacity:
-            return Response({"message": "报名人数已满"}, status=status.HTTP_400_BAD_REQUEST)
+            raise ValidationError("当前活动的报名人数已满")
 
         Attender.objects.create(activity=activity, user=user)
         return Response({"message": "报名成功"})
@@ -161,20 +162,20 @@ class ActivityViewSet(ReadOnlyModelViewSet):
     def quit(self, request, *args, **kwargs):
         """退出活动"""
         if permission_admin(request):
-            return Response({"message": "管理员无需退出"}, status=status.HTTP_400_BAD_REQUEST)
+            raise ValidationError("管理员无需退出")
 
         user = request.user
         activity = self.get_object()
 
         if activity.is_started:
-            return Response({"message": "活动已开始"}, status=status.HTTP_400_BAD_REQUEST)
+            raise ValidationError("活动已开始")
 
         try:
             record = Attender.objects.get(activity=activity, user=user)
             record.delete()
             return Response({"message": "退出成功"})
         except Attender.DoesNotExist:
-            return Response({"message": "您未报名"}, status=status.HTTP_400_BAD_REQUEST)
+            raise ValidationError("您未报名")
 
 
 class ActivityManageViewSet(ModelViewSet):
@@ -212,7 +213,7 @@ class ActivityManageViewSet(ModelViewSet):
             if not 5 <= ttl <= 7200:
                 raise ValueError
         except ValueError:
-            return Response({"message": "ttl需要为一个5~7200之间的正整数"}, status=status.HTTP_400_BAD_REQUEST)
+            raise ValidationError("ttl需要为一个5~7200之间的正整数")
         info = {
             "code": hashlib.md5(str(uuid1()).encode()).hexdigest(),
             "valid_until": to_django_time(timezone.now() + timezone.timedelta(seconds=ttl + 1)),
