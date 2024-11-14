@@ -135,7 +135,7 @@ class ActivityViewSet(ReadOnlyModelViewSet):
             "running": running_dict,
         }
 
-        return Response(ret, status=200)
+        return Response(ret, status=status.HTTP_200_OK)
 
     @action(methods=["get"], detail=True, url_path="attend")
     def attend(self, request, *args, **kwargs):
@@ -172,10 +172,12 @@ class ActivityViewSet(ReadOnlyModelViewSet):
 
         try:
             record = Attender.objects.get(activity=activity, user=user)
+            if record.status:
+                raise ValidationError("您已经签到了, 无法退出")
             record.delete()
             return Response({"message": "退出成功"})
         except Attender.DoesNotExist:
-            raise ValidationError("您未报名")
+            raise ValidationError("您未报名该活动")
 
 
 class ActivityManageViewSet(ModelViewSet):
